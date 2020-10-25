@@ -117,6 +117,37 @@ type TestConsoleApplication() =
 
         Assert.AreEqual(-1, returnCode)
         Assert.AreEqual(set ["Use prefix syntax for generic type."], errors)
+        
+    /// Regression test for: https://github.com/fsprojects/FSharpLint/issues/466
+    /// Hints listed in the ignore section of the config were not being ignored.
+    [<Test>]
+    member __.``Ignoring a hint in the configuration should stop it from being output as warning.``() =
+        let input = """
+        let x = [1; 2; 3; 4] |> List.map (fun x -> x + 2) |> List.map (fun x -> x + 2)
+        """
+        
+        let (returnCode, errors) = main [| "lint"; input |]
+        
+        // Check default config triggers the hint we're expecting to ignore later.
+        Assert.AreEqual(-1, returnCode)
+        Assert.AreEqual(set ["`List.map f (List.map g x)` might be able to be refactored into `List.map (g >> f) x`."], errors)
+
+        let config = """
+        {
+            "hints": {
+                "add": [],
+                "ignore": [
+                    "List.map f (List.map g x) ===> List.map (g >> f) x"
+                ]
+            }
+        }
+        """
+        use config = new TemporaryFile(config, "json")
+
+        let (returnCode, errors) = main [| "lint"; "--lint-config"; config.FileName; input |]
+
+        Assert.AreEqual(0, returnCode)
+        Assert.AreEqual(Set.empty<string>, errors)
 
 open FSharpLint.Console.Program
 
