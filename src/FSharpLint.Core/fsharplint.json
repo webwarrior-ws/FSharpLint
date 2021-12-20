@@ -52,6 +52,7 @@
     "invalidArgWithTwoArguments": { "enabled": true },
     "failwithfWithArgumentsMatchingFormatString": { "enabled": true },
     "failwithBadUsage": { "enabled": true },
+    "csharpFriendlyAsyncOverload": { "enabled": false },
     "maxLinesInLambdaFunction": {
         "enabled": false,
         "config": {

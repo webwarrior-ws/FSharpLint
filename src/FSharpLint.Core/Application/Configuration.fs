@@ -555,7 +555,8 @@ type Configuration =
       FavourAsKeyword:EnabledConfig option 
       InterpolatedStringWithNoSubstitution:EnabledConfig option
       FavourSingleton:EnabledConfig option
-      NoAsyncRunSynchronouslyInLibrary:EnabledConfig option}
+      NoAsyncRunSynchronouslyInLibrary:EnabledConfig option
+      CSharpFriendlyAsyncOverload:EnabledConfig option }
 with
     static member Zero = {
         Global = None
@@ -658,6 +659,7 @@ with
         InterpolatedStringWithNoSubstitution = None
         FavourSingleton = None
         NoAsyncRunSynchronouslyInLibrary = None
+        CSharpFriendlyAsyncOverload = None
     }
 
 // fsharplint:enable RecordFieldNames
@@ -862,6 +864,7 @@ let flattenConfig (config:Configuration) =
                 config.InterpolatedStringWithNoSubstitution |> Option.bind (constructRuleIfEnabled InterpolatedStringWithNoSubstitution.rule)
                 config.FavourSingleton |> Option.bind (constructRuleIfEnabled FavourSingleton.rule)
                 config.NoAsyncRunSynchronouslyInLibrary |> Option.bind (constructRuleIfEnabled NoAsyncRunSynchronouslyInLibrary.rule)
+                config.CSharpFriendlyAsyncOverload |> Option.bind (constructRuleIfEnabled CSharpFriendlyAsyncOverload.rule)
             |]
 
     findDeprecation config deprecatedAllRules allRules
