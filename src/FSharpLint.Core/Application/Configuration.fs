@@ -366,6 +366,7 @@ type ConventionsConfig =
     { recursiveAsyncFunction:EnabledConfig option
       avoidTooShortNames:EnabledConfig option
       indexerAccessorStyleConsistency: RuleConfig<IndexerAccessorStyleConsistency.Config> option
+      preferStringInterpolationWithSprintf:EnabledConfig option
       redundantNewKeyword:EnabledConfig option
       favourStaticEmptyFields:EnabledConfig option
       asyncExceptionWithoutReturn:EnabledConfig option
@@ -413,6 +414,7 @@ with
                 this.suggestUseAutoProperty |> Option.bind (constructRuleIfEnabled SuggestUseAutoProperty.rule) |> Option.toArray
                 this.ensureTailCallDiagnosticsInRecursiveFunctions |> Option.bind (constructRuleIfEnabled EnsureTailCallDiagnosticsInRecursiveFunctions.rule) |> Option.toArray
                 this.indexerAccessorStyleConsistency |> Option.bind (constructRuleWithConfig IndexerAccessorStyleConsistency.rule) |> Option.toArray
+                this.preferStringInterpolationWithSprintf |> Option.bind (constructRuleIfEnabled PreferStringInterpolationWithSprintf.rule) |> Option.toArray
             |]
 
 [<Obsolete(ObsoleteMsg, ObsoleteWarnTreatAsError)>]
@@ -482,6 +484,7 @@ type Configuration =
       RecursiveAsyncFunction:EnabledConfig option
       AvoidTooShortNames:EnabledConfig option
       IndexerAccessorStyleConsistency:RuleConfig<IndexerAccessorStyleConsistency.Config> option
+      PreferStringInterpolationWithSprintf:EnabledConfig option
       RedundantNewKeyword:EnabledConfig option
       FavourNonMutablePropertyInitialization:EnabledConfig option
       FavourReRaise:EnabledConfig option
@@ -584,6 +587,7 @@ with
         RecursiveAsyncFunction = None
         AvoidTooShortNames = None
         IndexerAccessorStyleConsistency = None
+        PreferStringInterpolationWithSprintf = None
         RedundantNewKeyword = None
         FavourNonMutablePropertyInitialization = None
         FavourReRaise = None
