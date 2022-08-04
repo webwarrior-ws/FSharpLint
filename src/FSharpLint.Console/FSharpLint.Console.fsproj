@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFrameworks>net5.0</TargetFrameworks>
+    <TargetFrameworks>net6.0</TargetFrameworks>
 
     <Title>FSharpLint.Console</Title>
     <Description>Console application to run FSharpLint.</Description>
@@ -24,5 +24,9 @@
     <ProjectReference Include="..\FSharpLint.Core\FSharpLint.Core.fsproj" />
   </ItemGroup>
 
-  <Import Project="..\..\.paket\Paket.Restore.targets" />
+  <ItemGroup>
+    <PackageReference Include="Argu" />
+    <PackageReference Include="FSharp.Compiler.Service" />
+    <PackageReference Include="Microsoft.SourceLink.GitHub" />
+  </ItemGroup>
 </Project>

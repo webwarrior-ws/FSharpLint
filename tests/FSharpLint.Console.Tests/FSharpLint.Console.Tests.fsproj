@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net5.0</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
     <RootNamespace>FSharpLint.Console.Tests</RootNamespace>
   </PropertyGroup>
 
@@ -14,5 +14,11 @@
     <ProjectReference Include="..\..\src\FSharpLint.Core\FSharpLint.Core.fsproj" />
   </ItemGroup>
 
-  <Import Project="..\..\.paket\Paket.Restore.targets" />
+  <ItemGroup>
+    <PackageReference Include="nunit" />
+    <PackageReference Include="NUnit3TestAdapter" />
+    <PackageReference Include="Argu" />
+    <PackageReference Include="FSharp.Compiler.Service" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />    
+  </ItemGroup>
 </Project>
