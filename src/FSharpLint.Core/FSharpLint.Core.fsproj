@@ -11,6 +11,7 @@
     <Title>FSharpLint.Core</Title>
     <Description>API to programmatically run FSharpLint.</Description>
     <PackageTags>F#;fsharp;lint;FSharpLint;fslint;api</PackageTags>
+	<ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
   </PropertyGroup>
   <ItemGroup>
     <!-- Framework -->

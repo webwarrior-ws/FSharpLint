@@ -13,6 +13,7 @@
     <RootNamespace>FSharpLint.Console</RootNamespace>
     <IsPackable>true</IsPackable>
     <RollForward>Major</RollForward>
+	<ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
   </PropertyGroup>
 
   <ItemGroup>
