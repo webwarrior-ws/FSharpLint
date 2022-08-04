@@ -13,6 +13,7 @@
     <RootNamespace>FSharpLint.Console</RootNamespace>
     <IsPackable>true</IsPackable>
     <RollForward>Major</RollForward>
+	<ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
   </PropertyGroup>
 
   <ItemGroup>
@@ -24,5 +25,10 @@
     <ProjectReference Include="..\FSharpLint.Core\FSharpLint.Core.fsproj" />
   </ItemGroup>
 
-  <Import Project="..\..\.paket\Paket.Restore.targets" />
+  <ItemGroup>
+    <PackageReference Include="Argu" />
+    <PackageReference Include="FSharp.Compiler.Service" />
+    <PackageReference Include="Microsoft.SourceLink.GitHub" />
+	<PackageReference Include="Microsoft.Build.Locator" />
+  </ItemGroup>
 </Project>

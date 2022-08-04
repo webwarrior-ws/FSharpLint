@@ -8,10 +8,10 @@
         "fake"
       ]
     },
-    "paket": {
-      "version": "7.2.1",
+    "dotnet-fsharplint": {
+      "version": "0.16.1",
       "commands": [
-        "paket"
+        "dotnet-fsharplint"
       ]
     },
     "fornax": {

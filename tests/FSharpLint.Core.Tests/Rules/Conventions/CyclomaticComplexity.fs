@@ -3,6 +3,8 @@ module FSharpLint.Core.Tests.Rules.Conventions.CyclomaticComplexity
 open NUnit.Framework
 open FSharpLint.Rules.CyclomaticComplexity
 
+#nowarn "58"
+
 /// The max cyclomatic complexity as configured in these tests.
 [<Literal>]
 let private MaxComplexity = 5
@@ -222,7 +224,6 @@ let f() =
         this.Parse code
         Assert.IsTrue this.NoErrorsExist
         
-       
     /// Verifies that the cyclomatic complexity is calculated on nested functions independently by checking that a nested function that comes after another nested function with a cyclomatic complexity that is flagged as too high need not be flagged.
     [<Test>]
     member this.EnsureComplexityOfNestedFunctionsAreIndependent() =
