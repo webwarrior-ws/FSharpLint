@@ -2,8 +2,14 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
+	<ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+	<RollForward>Major</RollForward>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="TestHints.fs" />
+  </ItemGroup>
+  
+  <ItemGroup>
+	<PackageReference Include="NUnit" />
   </ItemGroup>
 </Project>

@@ -11,6 +11,7 @@
     <Title>FSharpLint.Core</Title>
     <Description>API to programmatically run FSharpLint.</Description>
     <PackageTags>F#;fsharp;lint;FSharpLint;fslint;api</PackageTags>
+	<ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
   </PropertyGroup>
   <ItemGroup>
     <!-- Framework -->
@@ -123,5 +124,18 @@
       <SubType>Designer</SubType>
     </EmbeddedResource>
   </ItemGroup>
-  <Import Project="..\..\.paket\Paket.Restore.targets" />
+  <ItemGroup>
+    <PackageReference Include="FSharp.Compiler.Service" />
+    <PackageReference Include="FParsec" />
+    <PackageReference Include="Ionide.ProjInfo" />
+    <PackageReference Include="Ionide.ProjInfo.ProjectSystem" />
+    <PackageReference Include="Ionide.ProjInfo.FCS" />
+    <PackageReference Include="Newtonsoft.Json" />
+    <PackageReference Include="Microsoft.SourceLink.GitHub" />
+    <PackageReference Include="Microsoft.Build.Tasks.Core" ExcludeAssets="runtime" />
+    <PackageReference Include="Microsoft.Build.Framework" ExcludeAssets="runtime" />
+    <PackageReference Include="Microsoft.Build.Locator" ExcludeAssets="runtime" />
+    <PackageReference Include="Microsoft.Build.Utilities.Core" ExcludeAssets="runtime" />
+    <PackageReference Include="Microsoft.Build" ExcludeAssets="runtime" />
+  </ItemGroup>
 </Project>
