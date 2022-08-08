@@ -1,6 +1,20 @@
 // --------------------------------------------------------------------------------------
 // FAKE build script
 // --------------------------------------------------------------------------------------
+#r "paket:
+nuget Fake.Core.Target
+nuget Fake.Core.Process
+nuget Fake.DotNet.Cli
+nuget Fake.Core.ReleaseNotes
+nuget Fake.DotNet.AssemblyInfoFile
+nuget Fake.DotNet.Paket
+nuget Fake.Tools.Git
+nuget Fake.Core.Environment
+nuget Fake.Core.UserInput
+nuget Fake.IO.FileSystem
+nuget Fake.DotNet.MsBuild
+nuget Fake.Api.GitHub
+//"
 #load ".fake/build.fsx/intellisense.fsx"
 
 open Fake.Core
@@ -134,10 +148,7 @@ Target.create "Push" (fun _ ->
         match getBuildParam "nuget-key" with
         | s when not (isNullOrWhiteSpace s) -> s
         | _ -> UserInput.getUserPassword "NuGet Key: "
-    ()
-    //DotNet.publish (fun opts -> opts) "FSharpLint.sln"
-    //Paket.push (fun p -> { p with WorkingDir = nugetDir; ApiKey = key; ToolType = ToolType.CreateLocalTool() })
-    )
+    Paket.push (fun p -> { p with WorkingDir = nugetDir; ApiKey = key; ToolType = ToolType.CreateLocalTool() }))
 
 // --------------------------------------------------------------------------------------
 // Build order
