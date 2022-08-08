@@ -5,6 +5,7 @@
     <ItemGroup Condition=" '$(EnableCentralPackageVersions)' != 'false' ">
         <PackageReference Update="FSharp.Core"
                           Condition="'$(MSBuildProjectExtension)' == '.fsproj' And '$(DisableImplicitFSharpCoreReference)' != 'true' And '$(UpdateImplicitFSharpCoreReference)' != 'false'"
-                          IsImplicitlyDefined="true" />
+                          IsImplicitlyDefined="true"
+						  Version="5.0.2" />
     </ItemGroup>
 </Project>
