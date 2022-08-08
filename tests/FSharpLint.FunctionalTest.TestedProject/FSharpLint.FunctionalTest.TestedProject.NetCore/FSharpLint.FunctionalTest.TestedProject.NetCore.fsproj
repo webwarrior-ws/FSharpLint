@@ -6,4 +6,12 @@
   <ItemGroup>
     <Compile Include="TestHints.fs" />
   </ItemGroup>
+  
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Build.Framework" />
+	<PackageReference Include="FSharp.Compiler.Service" />
+	<PackageReference Include="NUnit3TestAdapter" />
+	<PackageReference Include="NUnit" />
+	<PackageReference Include="Microsoft.NET.Test.Sdk" />
+  </ItemGroup>
 </Project>
