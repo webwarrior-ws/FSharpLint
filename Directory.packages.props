@@ -1,6 +1,5 @@
 <Project>  
   <ItemGroup>
-    <PackageVersion Include="FSharp.Compiler.Service" Version="41.0.5" />
     <PackageVersion Include="Ionide.ProjInfo.ProjectSystem" Version="0.53.0" />
     <PackageVersion Include="Ionide.ProjInfo.FCS" Version="0.53.0" />
     <PackageVersion Include="FSharp.Formatting" Version="4.0" />
