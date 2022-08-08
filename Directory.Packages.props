@@ -83,7 +83,6 @@
     <PackageVersion Include="Microsoft.Win32.Primitives" Version="4.3" />
     <PackageVersion Include="Microsoft.Win32.Registry" Version="5.0" />
     <PackageVersion Include="Microsoft.Win32.SystemEvents" Version="5.0" />
-    <PackageVersion Include="NETStandard.Library" Version="2.0.3" />
     <PackageVersion Include="Newtonsoft.Json" Version="13.0.1" />
     <PackageVersion Include="NuGet.Frameworks" Version="5.10" />
     <PackageVersion Include="NUnit" Version="3.13.2" />
