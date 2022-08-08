@@ -1,7 +1,6 @@
 // --------------------------------------------------------------------------------------
 // FAKE build script
 // --------------------------------------------------------------------------------------
-#r "paket: groupref build //"
 #load ".fake/build.fsx/intellisense.fsx"
 
 open Fake.Core
@@ -135,7 +134,10 @@ Target.create "Push" (fun _ ->
         match getBuildParam "nuget-key" with
         | s when not (isNullOrWhiteSpace s) -> s
         | _ -> UserInput.getUserPassword "NuGet Key: "
-    Paket.push (fun p -> { p with WorkingDir = nugetDir; ApiKey = key; ToolType = ToolType.CreateLocalTool() }))
+    ()
+    //DotNet.publish (fun opts -> opts) "FSharpLint.sln"
+    //Paket.push (fun p -> { p with WorkingDir = nugetDir; ApiKey = key; ToolType = ToolType.CreateLocalTool() })
+    )
 
 // --------------------------------------------------------------------------------------
 // Build order
