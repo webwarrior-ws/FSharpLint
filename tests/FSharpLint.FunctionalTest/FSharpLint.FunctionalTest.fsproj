@@ -24,7 +24,6 @@
 	<PackageReference Include="Microsoft.Build.Locator" />
 	<PackageReference Include="Microsoft.Win32.Registry" /> 
     <PackageReference Include="Microsoft.Build.Locator" />
-    <PackageReference Include="NuGet.Frameworks" />
   </ItemGroup>
 
   <!-- workaround for NuGet.Frameworks FileLoadException issue,
