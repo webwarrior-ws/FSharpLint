@@ -22,7 +22,8 @@
     <PackageReference Include="Microsoft.NET.Test.Sdk" />
     <PackageReference Include="FSharp.Compiler.Service" />
 	<PackageReference Include="Microsoft.Build.Locator" />
-	<PackageReference Include="Microsoft.Win32.Registry" /> 
+	<PackageReference Include="Microsoft.Win32.Registry" />
+    <PackageReference Include="NuGet.Frameworks" />
   </ItemGroup>
 
   <!-- workaround for NuGet.Frameworks FileLoadException issue,
