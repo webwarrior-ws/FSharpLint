@@ -46,7 +46,6 @@
     <PackageVersion Include="Microsoft.TestPlatform.ObjectModel" Version="16.10" />
     <PackageVersion Include="Microsoft.TestPlatform.TestHost" Version="16.10" />
     <PackageVersion Include="Microsoft.Win32.Primitives" Version="4.3" />
-    <PackageVersion Include="Microsoft.Win32.Registry" Version="5.0" />
     <PackageVersion Include="Microsoft.Win32.SystemEvents" Version="5.0" />
     <PackageVersion Include="Newtonsoft.Json" Version="13.0.1" />
     <PackageVersion Include="NuGet.Frameworks" Version="5.10" />
