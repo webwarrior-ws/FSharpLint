@@ -21,6 +21,11 @@
     <PackageReference Include="Microsoft.NET.Test.Sdk" />
     <PackageReference Include="FSharp.Compiler.Service" />
 	<PackageReference Include="Microsoft.Build.Locator" />
-    <PackageReference Include="NuGet.Frameworks" />
   </ItemGroup>
+
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <Copy SourceFiles="$(MSBuildSDKsPath)\..\NuGet.Frameworks.dll"
+          DestinationFolder="$(OutputPath)"
+          ContinueOnError="false" />
+  </Target>
 </Project>
