@@ -11,6 +11,5 @@
   <ItemGroup>
 	<PackageReference Include="FSharp.Compiler.Service" />
 	<PackageReference Include="NUnit" />
-	<PackageReference Include="Microsoft.NET.Test.Sdk" />
   </ItemGroup>
 </Project>
