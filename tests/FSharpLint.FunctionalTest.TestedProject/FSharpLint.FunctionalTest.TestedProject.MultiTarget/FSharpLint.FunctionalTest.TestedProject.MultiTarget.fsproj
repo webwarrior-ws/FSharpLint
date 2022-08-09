@@ -10,6 +10,5 @@
   
   <ItemGroup>
 	<PackageReference Include="NUnit" />
-    <PackageReference Include="NuGet.Frameworks" />
   </ItemGroup>
 </Project>
