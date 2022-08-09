@@ -23,6 +23,8 @@
 	<PackageReference Include="Microsoft.Build.Locator" />
   </ItemGroup>
 
+  <!-- workaround for NuGet.Frameworks FileLoadException issue,
+       see https://github.com/dotnet/roslyn/issues/61454#issuecomment-1191209761 -->
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
     <Copy SourceFiles="$(MSBuildSDKsPath)\..\NuGet.Frameworks.dll"
           DestinationFolder="$(OutputPath)"
