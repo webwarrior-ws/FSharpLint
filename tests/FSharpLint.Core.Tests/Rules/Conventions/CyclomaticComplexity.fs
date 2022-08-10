@@ -4,7 +4,6 @@ open NUnit.Framework
 open FSharpLint.Rules.CyclomaticComplexity
 open System
 
-#nowarn "58"
 
 /// The max cyclomatic complexity as configured in these tests.
 [<Literal>]
@@ -231,9 +230,9 @@ let f() =
         let code = $"""Module Program
 let f() = 
     let g() =
-{(makeMatchSnippet (MaxComplexity+1)) |> indent 8} 
+        {(makeMatchSnippet (MaxComplexity+1))} 
     let h() =
-{makeMatchSnippet (MaxComplexity) |> indent 8} 
-{makeMatchSnippet (MaxComplexity+1) |> indent 4}"""    
+        {makeMatchSnippet (MaxComplexity)} 
+    {makeMatchSnippet (MaxComplexity+1)}"""    
         this.Parse code
         Assert.AreEqual(2, this.ErrorRanges.Length)
