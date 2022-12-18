@@ -1,6 +1,7 @@
 module FSharpLint.Rules.UsedUnderscorePrefixedElements
 
 open System
+
 open FSharpLint.Framework
 open FSharpLint.Framework.Suggestion
 open FSharp.Compiler.Syntax
@@ -9,9 +10,9 @@ open FSharpLint.Framework.Rules
 
 let private checkUsedIdent (previousIdent: Ident) (body: SynExpr) =
     match body with
-    | SynExpr.Sequential(debugPointAtSequential, isTrueSeq, synExpr, expr2, range) ->
+    | SynExpr.Sequential(_debugPointAtSequential, _isTrueSeq, synExpr, _expr2, _range) ->
         match synExpr with
-        | SynExpr.App(exprAtomicFlag, isInfix, funcExpr, argExpr, range) ->
+        | SynExpr.App(_exprAtomicFlag, _isInfix, _funcExpr, argExpr, range) ->
             match argExpr with
             | SynExpr.Ident ident ->
                 if previousIdent.idText = ident.idText then
@@ -19,7 +20,7 @@ let private checkUsedIdent (previousIdent: Ident) (body: SynExpr) =
                         Range = range
                         Message = String.Format(Resources.GetString ("RulesUsedUnderscorePrefixedElements"))
                         SuggestedFix = None
-                        TypeChecks = []
+                        TypeChecks = List.Empty
                     } |> Array.singleton
                 else
                     Array.empty
@@ -28,23 +29,24 @@ let private checkUsedIdent (previousIdent: Ident) (body: SynExpr) =
         | _ ->
             Array.empty
     | _ ->
-            Array.empty  
+        Array.empty  
 
-let runner (args:AstNodeRuleParams) =
+let runner (args: AstNodeRuleParams) =
     
     let error =
         match args.AstNode with
-        | AstNode.Expression (SynExpr.LetOrUse (isRecursive, isUse, bindings, body, range)) ->
-            match bindings.[0] with
-            | SynBinding(synAccessOption, synBindingKind, mustInline, isMutable, synAttributeLists, preXmlDoc, synValData, headPat, synBindingReturnInfoOption, synExpr, range, debugPointAtBinding) ->
+        | AstNode.Expression (SynExpr.LetOrUse (_isRecursive, _isUse, bindings, body, _range)) ->
+            match List.tryHead bindings with
+            | Some(SynBinding(_synAccessOption, _synBindingKind, _mustInline, _isMutable, _synAttributeLists, _preXmlDoc, _synValData, headPat, _synBindingReturnInfoOption, _synExpr, _range, _debugPointAtBinding)) ->
                 match headPat with
-                | SynPat.Named(synPat, ident, isSelfIdentifier, synAccessOption, range) ->
+                | SynPat.Named(_synPat, ident, _isSelfIdentifier, _synAccessOption, _range) ->
                     if ident.idText.StartsWith "_" then
                         checkUsedIdent ident body
                     else
                         Array.empty
                 | _ ->
                     Array.empty
+            | _ -> Array.empty
         | _ -> Array.empty
         
     error
