@@ -9,10 +9,31 @@ type TestConventionsCSharpFriendlyAsyncOverload() =
     inherit TestAstNodeRuleBase.TestAstNodeRuleBase(CSharpFriendlyAsyncOverload.rule)
 
     [<Test>]
-    member this.``async function must suggest friendly implementation``() =
+    member this.``async function should have the prefix Async``() =
         this.Parse("""
 module Foo =
     let Bar(): Async<unit> =
+        Async.Sleep 5""")
+
+        Assert.IsTrue(this.ErrorExistsAt(3, 8))
+        
+    [<Test>]
+    member this.``async function should have the prefix Async 2``() =
+        this.Parse("""
+module Foo =
+    let Bar(): Async<unit> =
+        Async.Sleep 5
+    let BarAsync(): Task<unit> =
+        Bar() |> Async.StartAsTask""")
+
+        Assert.IsTrue(this.ErrorExistsAt(3, 8))
+       
+        
+    [<Test>]
+    member this.``async function must suggest friendly implementation``() =
+        this.Parse("""
+module Foo =
+    let AsyncBar(): Async<unit> =
         Async.Sleep 5""")
 
         Assert.IsTrue(this.ErrorExistsAt(3, 8))
@@ -21,7 +42,7 @@ module Foo =
     member this.``async function with friendly implementation must not have errors``() =
         this.Parse("""
 module Foo =
-    let Bar(): Async<unit> =
+    let AsyncBar(): Async<unit> =
         Async.Sleep 5
     let BarAsync(): Task<unit> =
         Bar() |> Async.StartAsTask""")
@@ -41,7 +62,7 @@ module Foo =
     member this.``async function must not have errors when not delcared immediately following the parent function``() =
         this.Parse("""
 module Foo =
-    let Bar(): Async<unit> =
+    let AsyncBar(): Async<unit> =
         Async.Sleep 5
     let RandomFunction() =
         ()
@@ -54,13 +75,13 @@ module Foo =
     member this.``multiple async functions must have errors``() =
         this.Parse("""
 module Foo =
-    let Bar(): Async<unit> =
+    let AsyncBar(): Async<unit> =
         Async.Sleep 5
     let RandomFunction() =
         ()
     let BarAsync(): Task<unit> =
         Bar() |> Async.StartAsTask
-    let Foo(): Async<unit> =
+    let AsyncFoo(): Async<unit> =
         Async.Sleep 10""")
 
         Assert.IsTrue(this.ErrorExistsAt(9, 8))
@@ -69,13 +90,13 @@ module Foo =
     member this.``multiple async functions must not have errors``() =
         this.Parse("""
 module Foo =
-    let Bar(): Async<unit> =
+    let AsyncBar(): Async<unit> =
         Async.Sleep 5
     let RandomFunction() =
         ()
     let BarAsync(): Task<unit> =
         Bar() |> Async.StartAsTask
-    let Foo(): Async<unit> =
+    let AsyncFoo(): Async<unit> =
         Async.Sleep 10
     let FooAsync(): Task<unit> =
         Foo() |> Async.StartAsTask""")
