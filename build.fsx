@@ -145,7 +145,7 @@ Target.create "Push" (fun _ ->
 
 
 Target.create "SelfCheck" (fun _ ->
-    let frameworkVersion = "net5.0"
+    let frameworkVersion = "net6.0"
     let rootDir = __SOURCE_DIRECTORY__ |> DirectoryInfo
     let srcDir = Path.Combine(rootDir.FullName, "src") |> DirectoryInfo
 

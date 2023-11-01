@@ -1,4 +1,4 @@
-name: .NET 5.0
+name: .NET 6.0
 
 on:
   pull_request:
@@ -17,12 +17,12 @@ jobs:
         - ubuntu-latest
         - windows-latest
         - macOS-latest
-        dotnet: [5.0.202]
+        dotnet: [6.0.416]
     runs-on: ${{ matrix.os }}
 
     steps:
     - uses: actions/checkout@v1
-    - name: Setup .NET 5
+    - name: Setup .NET 6
       uses: actions/setup-dotnet@v3
       with:
         dotnet-version: ${{ matrix.dotnet }}
@@ -41,13 +41,13 @@ jobs:
     strategy:
       matrix:
         os: [windows-latest]
-        dotnet: [5.0.202]
+        dotnet: [6.0.416]
     runs-on: ${{ matrix.os }}
 
     steps:
     - uses: actions/checkout@v1
-    - name: Setup .NET 5
-      uses: actions/setup-dotnet@v3
+    - name: Setup .NET 6
+      uses: actions/setup-dotnet@v1
       with:
         dotnet-version: ${{ matrix.dotnet }}
     - name: Restore tools

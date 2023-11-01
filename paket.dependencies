@@ -1,6 +1,6 @@
 source https://api.nuget.org/v3/index.json
 
-framework: netstandard2.0, net5.0
+framework: netstandard2.0, net6.0
 storage: none
 
 nuget Argu
@@ -20,10 +20,10 @@ nuget Microsoft.Build.Locator
 # don't expose as a package reference
 nuget Microsoft.SourceLink.GitHub copy_local: true
 # don't copy runtime assets
-nuget Microsoft.Build.Framework copy_local: false
+nuget Microsoft.Build.Framework == 17.3.2 copy_local: false
 nuget Microsoft.Build.Tasks.Core copy_local: false
-nuget Microsoft.Build.Utilities.Core copy_local: false
-nuget Microsoft.Build copy_local: false
+nuget Microsoft.Build.Utilities.Core == 17.3.2 copy_local: false
+nuget Microsoft.Build == 17.3.2 copy_local: false
 
 group Docs
   source https://api.nuget.org/v3/index.json
@@ -39,8 +39,9 @@ group Docs
 group Build
   source https://api.nuget.org/v3/index.json
 
-  framework: netstandard2.0
+  framework: net6.0
   storage: none
+  strategy: min
 
   nuget Fake.Core.Target
   nuget Fake.Core.Process
