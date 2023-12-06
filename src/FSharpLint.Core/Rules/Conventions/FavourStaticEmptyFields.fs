@@ -69,7 +69,7 @@ let private runner (args: AstNodeRuleParams) =
                 let suggestions = generateError range idText emptyLiteralType
                 suggestions |> Array.map (fun suggestion -> { suggestion with TypeChecks = Option.toList typeCheck }))
         | _ -> Array.empty
-    | Binding(SynBinding(_, _, _, _, _, _, _, _, _, expression, _, _)) ->
+    | Binding(SynBinding(_, _, _, _, _, _, _, _, _, expression, _, _, _)) ->
         match expression with
         | SynExpr.Const (SynConst.String (id, _, range), _) when id = "" ->
             (range, id, None, getEmptyLiteralType id)
