@@ -95,4 +95,7 @@ type TestRuleBase () =
         | None -> source
 
     [<SetUp>]
-    member __.SetUp() = suggestions.Clear()
+    member __.SetUp() = 
+        Console.Error.WriteLine "SetUp entered"
+        suggestions.Clear()
+        Console.Error.WriteLine "SetUp completed"

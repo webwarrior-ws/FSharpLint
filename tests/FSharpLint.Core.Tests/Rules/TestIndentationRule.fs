@@ -12,6 +12,7 @@ type TestIndentationRuleBase (rule:Rule) =
     inherit TestRuleBase.TestRuleBase()
 
     override this.Parse (input:string, ?fileName:string, ?checkFile:bool, ?globalConfig:GlobalRuleConfig) =
+        System.Console.Error.WriteLine "enter TestIndentationRuleBase.Parse"
         let checker = FSharpChecker.Create(keepAssemblyContents=true)
         let sourceText = SourceText.ofString input
 
