@@ -31,7 +31,7 @@ module ExpressionUtilities =
 
     let (|Identifier|_|) = function
         | SynExpr.Ident(ident) -> Some([ident], ident.idRange)
-        | SynExpr.LongIdent(_, longIdent, _, _) -> Some(longIdent.Lid, longIdent.Range)
+        | SynExpr.LongIdent(_, longIdent, _, _) -> Some(longIdent.LongIdent, longIdent.Range)
         | _ -> None
 
     let getSymbolFromIdent (checkFile:FSharpCheckFileResults option) expr =
@@ -76,8 +76,8 @@ module ExpressionUtilities =
         lid |> List.map (fun li -> li.idText) |> String.concat "."
 
     /// Converts a LongIdentWithDots to a String.
-    let longIdentWithDotsToString (lidwd:LongIdentWithDots) =
-        lidwd.Lid |> longIdentToString
+    let longIdentWithDotsToString (lidwd: SynLongIdent) =
+        lidwd.LongIdent |> longIdentToString
 
     /// Tries to find the source code within a given range.
     let tryFindTextOfRange (range:Range) (text:string) =
