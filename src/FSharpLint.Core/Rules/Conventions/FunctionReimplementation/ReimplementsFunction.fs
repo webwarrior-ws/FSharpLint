@@ -24,7 +24,7 @@ let private validateLambdaIsNotPointless (text:string) lambda range =
     let generateError (identifier:LongIdent) =
         let identifier =
             identifier
-            |> List.map (fun x ->  PrettyNaming.DemangleOperatorName x.idText)
+            |> List.map (fun x -> PrettyNaming.DecompileOpName x.idText)
             |> String.concat "."
 
         let suggestedFix = lazy(

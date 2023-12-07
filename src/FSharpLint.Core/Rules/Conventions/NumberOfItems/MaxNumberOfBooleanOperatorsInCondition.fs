@@ -52,7 +52,7 @@ let private runner (config:Helper.NumberOfItems.Config) (args:AstNodeRuleParams)
         | SynExpr.Assert(condition, _) ->
             validateCondition config.MaxItems condition
         | _ -> Array.empty
-    | AstNode.Match(SynMatchClause(_, Some(whenExpr), _, _, _)) ->
+    | AstNode.Match(SynMatchClause(_, Some(whenExpr), _, _, _, _)) ->
         validateCondition config.MaxItems whenExpr
     | _ -> Array.empty
 

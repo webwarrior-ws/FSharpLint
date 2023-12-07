@@ -43,7 +43,7 @@ module ContextBuilder =
         | (SynExpr.Record ( _, _, fields, _)) ->
             let subRecords =
                 fields
-                |> List.choose (fun (_, expr, _) -> expr |> Option.map collectRecordFields)
+                |> List.choose (fun (SynExprRecordField(_, _, expr, _)) -> expr |> Option.map collectRecordFields)
                 |> List.concat
             fields::subRecords
         | _ ->
@@ -58,7 +58,7 @@ module ContextBuilder =
 
     let private indentationOverridesForNode (node:AstNode) =
         match node with
-        | TypeDefinition (SynTypeDefn(_, SynTypeDefnRepr.Simple(SynTypeDefnSimpleRepr.Record(_, fields, _), _), _,_,  _)) ->
+        | TypeDefinition (SynTypeDefn(_, SynTypeDefnRepr.Simple(SynTypeDefnSimpleRepr.Record(_, fields, _), _), _, _, _, _)) ->
             fields
             |> List.map (fun (SynField (_, _, _, _, _, _, _, range)) -> range)
             |> firstRangePerLine
@@ -72,10 +72,10 @@ module ContextBuilder =
             collectRecordFields record
             |> List.collect (fun recordFields ->
                 recordFields
-                |> List.map (fun ((fieldName, _), _, _) -> fieldName.Range)
+                |> List.map (fun (SynExprRecordField((fieldName, _), _, _, _)) -> fieldName.Range)
                 |> firstRangePerLine
                 |> createAbsoluteAndOffsetOverridesBasedOnFirst)
-        | Expression (SynExpr.ArrayOrListOfSeqExpr(expr=(SynExpr.CompExpr(isArrayOrList=true; expr=expr)))) ->
+        | Expression (SynExpr.ArrayOrListComputed(expr=(SynExpr.ComputationExpr(expr=expr)))) -> // ComputationExpr had isArrayOrList=true, but it has no such field anymore
             extractSeqExprItems expr
             |> List.map (fun expr -> expr.Range)
             |> firstRangePerLine
@@ -107,7 +107,7 @@ module ContextBuilder =
             |> createAbsoluteAndOffsetOverridesBasedOnFirst
         | Pattern (SynPat.Record (fieldPats=fieldPats)) ->
             fieldPats
-            |> List.map (fun ((_, fieldIdent), _) -> fieldIdent.idRange)
+            |> List.map (fun ((_, fieldIdent), _, _) -> fieldIdent.idRange)
             |> firstRangePerLine
             |> createAbsoluteAndOffsetOverridesBasedOnFirst
         | _ -> []

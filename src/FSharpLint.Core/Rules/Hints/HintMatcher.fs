@@ -178,7 +178,7 @@ module private MatchExpression =
             let ident = identAsDecompiledOpName ident
             Some(Expression.Identifier([ident]))
         | AstNode.Expression(SynExpr.LongIdent(_, ident, _, _)) ->
-            let identifier = ident.Lid |> List.map (fun x -> x.idText)
+            let identifier = ident.LongIdent |> List.map (fun x -> x.idText)
             Some(Expression.Identifier(identifier))
         | AstNode.Expression(SynExpr.Const(constant, _)) ->
             matchConst constant |> Option.map Expression.Constant
@@ -338,7 +338,7 @@ module private MatchExpression =
         | AstNode.Expression(SynExpr.ArrayOrList(false, expressions, _)), Expression.List(hintExpressions) ->
             let expressions = List.map AstNode.Expression expressions
             doExpressionsMatch expressions hintExpressions arguments
-        | AstNode.Expression(SynExpr.ArrayOrListOfSeqExpr(false, SynExpr.CompExpr(true, _, expression, _), _)), Expression.List([hintExpression]) ->
+        | AstNode.Expression(SynExpr.ArrayOrListComputed(false, SynExpr.ComputationExpr(true, expression, _), _)), Expression.List([hintExpression]) -> // ??
             arguments.SubHint(AstNode.Expression(expression), hintExpression) |> matchHintExpr
         | _ -> NoMatch
 
@@ -347,7 +347,7 @@ module private MatchExpression =
         | AstNode.Expression(SynExpr.ArrayOrList(true, expressions, _)), Expression.Array(hintExpressions) ->
             let expressions = List.map AstNode.Expression expressions
             doExpressionsMatch expressions hintExpressions arguments
-        | AstNode.Expression(SynExpr.ArrayOrListOfSeqExpr(true, SynExpr.CompExpr(true, _, expression, _), _)), Expression.Array([hintExpression]) ->
+        | AstNode.Expression(SynExpr.ArrayOrListComputed(true, SynExpr.ComputationExpr(true, expression, _), _)), Expression.Array([hintExpression]) -> // ??
             arguments.SubHint(AstNode.Expression(expression), hintExpression) |> matchHintExpr
         | _ -> NoMatch
 
@@ -388,7 +388,7 @@ module private MatchPattern =
 
     let private matchPattern = function
         | SynPat.LongIdent(ident, _, _, _, _, _) ->
-            let identifier = ident.Lid |> List.map (fun x -> x.idText)
+            let identifier = ident.LongIdent |> List.map (fun x -> x.idText)
             Some(Pattern.Identifier(identifier))
         | SynPat.Const(constant, _) ->
             matchConst constant |> Option.map Pattern.Constant
@@ -450,7 +450,7 @@ module private MatchPattern =
     and private matchConsPattern (pattern, hint) =
         match (pattern, hint) with
         | SynPat.LongIdent(
-                            LongIdentWithDots([ident],_),
+                            SynLongIdent([ident], _, _),
                             _,
                             _,
                             SynArgPats.Pats([SynPat.Tuple(_, [leftPattern;rightPattern], _)]),
@@ -462,7 +462,7 @@ module private MatchPattern =
 
     and private matchOrPattern (pattern, hint) =
         match (pattern, hint) with
-        | SynPat.Or(leftPattern, rightPattern, _), Pattern.Or(left, right) ->
+        | SynPat.Or(leftPattern, rightPattern, _, _), Pattern.Or(left, right) ->
             matchHintPattern (leftPattern, left) && matchHintPattern (rightPattern, right)
         | _ -> false
 
@@ -524,7 +524,7 @@ module private FormatHint =
             | HintExpr(Expression.Identifier(identifier))
             | HintPat(Pattern.Identifier(identifier)) ->
                 identifier
-                |> List.map PrettyNaming.DemangleOperatorName
+                |> List.map PrettyNaming.CompileOpName
                 |> String.concat "."
             | HintExpr(Expression.FunctionApplication(expressions)) ->
                 expressions |> surroundExpressionsString (HintExpr >> toString) "" "" " "
@@ -596,13 +596,13 @@ let private hintError typeChecks hint (args:AstNodeRuleParams) range matchedVari
         let error = System.String.Format(errorFormatString, matched, message)
         { Range = range; Message = error; SuggestedFix = None; TypeChecks = typeChecks }
 
-let private getMethodParameters (checkFile:FSharpCheckFileResults) (methodIdent:LongIdentWithDots) =
+let private getMethodParameters (checkFile:FSharpCheckFileResults) (methodIdent: SynLongIdent) =
     let symbol =
         checkFile.GetSymbolUseAtLocation(
             methodIdent.Range.StartLine,
             methodIdent.Range.EndColumn,
             "",
-            methodIdent.Lid |> List.map (fun x -> x.idText))
+            methodIdent.LongIdent |> List.map (fun x -> x.idText))
 
     match symbol with
     | Some(symbol) when (symbol.Symbol :? FSharpMemberOrFunctionOrValue) ->

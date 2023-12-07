@@ -19,7 +19,7 @@ let runner (args: AstNodeRuleParams) =
 
     let error =
         match args.AstNode with
-        | AstNode.Binding (SynBinding(_synAcc, _synBinding, _mustInline, _isMut, _synAttribs, _preXmlDoc, _synValData, _headPat, _synBindingRet, synExpr, _range, _debugPointAtBinding)) ->
+        | AstNode.Binding (SynBinding(_synAcc, _synBinding, _mustInline, _isMut, _synAttribs, _preXmlDoc, _synValData, _headPat, _synBindingRet, synExpr, _range, _debugPointAtBinding, _)) ->
             match synExpr with
             | SynExpr.App(_exprAtomicFlag, _isInfix, funcExpr, _argExpr, _range) ->
                 match funcExpr with
