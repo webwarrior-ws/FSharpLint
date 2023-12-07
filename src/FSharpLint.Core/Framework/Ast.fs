@@ -223,7 +223,7 @@ module Ast =
         | SynPat.Ands(patterns, _) -> patterns |> List.revIter (Pattern >> add)
         | SynPat.Attrib(pattern, _, _)
         | SynPat.Paren(pattern, _) -> add <| Pattern pattern
-        | SynPat.Named(_, _, _, _) as pattern -> add <| Pattern pattern // ???
+        | SynPat.Named(_, _, _, _) -> () // ???
         | SynPat.Record(patternsAndIdentifier, _) -> patternsAndIdentifier |> List.revIter (fun (_, _, pattern) -> pattern |> Pattern |> add)
         | SynPat.Const(_)
         | SynPat.Wild(_)
