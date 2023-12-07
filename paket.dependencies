@@ -11,7 +11,7 @@ nuget FSharp.Compiler.Service ~> 40.0
 nuget Ionide.ProjInfo.ProjectSystem ~> 0.53.0
 nuget Ionide.ProjInfo.FCS ~> 0.53.0
 nuget FSharp.Core
-nuget nunit
+nuget nunit ~> 3.0
 nuget NUnit3TestAdapter
 nuget Microsoft.NET.Test.Sdk
 nuget Newtonsoft.Json
