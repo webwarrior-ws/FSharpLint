@@ -205,8 +205,9 @@ module Ast =
             add <| Type synType
         | SynMemberDefn.AutoProperty(_, _, _, None, _, _, _, _, _, expression, _, _, _) ->
             add <| Expression expression
-        | SynMemberDefn.GetSetMember(_) ->
-            failwith "GetSetMember case not implemented" // ???
+        | SynMemberDefn.GetSetMember(memberDefnForGet, memberDefnForSet, _, _) ->
+            memberDefnForGet |> Option.iter (Binding >> add)
+            memberDefnForSet |> Option.iter (Binding >> add)
 
     let inline private patternChildren node add =
         match node with
@@ -237,7 +238,9 @@ module Ast =
             add <| Pattern lhs
         | SynPat.LongIdent(_, _, _, constructorArguments, _, _) ->
             add <| ConstructorArguments constructorArguments
-        | x -> failwithf "Unexpected SynPat case: %A" x // ???
+        | SynPat.As(lhsPart, rhsPart, _) ->
+            add <| Pattern lhsPart
+            add <| Pattern rhsPart
 
     let inline private expressionChildren node add =
         match node with
@@ -354,10 +357,16 @@ module Ast =
         | SynExpr.Lambda(_)
         | SynExpr.App(_)
         | SynExpr.Fixed(_) -> ()
-        | SynExpr.DebugPoint(_) -> () // ???
-        | SynExpr.Dynamic(_) -> () // ???
-        | SynExpr.IndexFromEnd(_) -> () // ???
-        | SynExpr.IndexRange(_) -> () // ???
+        | SynExpr.DebugPoint(_debugPoint, _, innerExpr) -> 
+            add <| Expression innerExpr
+        | SynExpr.Dynamic(funcExpr, _, argExpr, _) ->
+            add <| Expression funcExpr
+            add <| Expression argExpr
+        | SynExpr.IndexFromEnd(expr, _) -> 
+            add <| Expression expr
+        | SynExpr.IndexRange(expr1, _, expr2, _, _, _) -> 
+            expr1 |> Option.iter (Expression >> add)
+            expr2 |> Option.iter (Expression >> add)
 
     let inline private typeSimpleRepresentationChildren node add =
         match node with
