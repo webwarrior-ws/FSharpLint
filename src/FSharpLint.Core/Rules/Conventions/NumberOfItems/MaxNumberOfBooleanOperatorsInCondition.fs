@@ -24,7 +24,7 @@ let private validateCondition (maxBooleanOperators:int) condition =
             total + left + right
         | SynExpr.Paren(expr, _, _, _) ->
             countBooleanOperators total expr
-        | SynExpr.Ident ident ->
+        | ExpressionUtilities.Identifier([ ident ], _) ->
             if Set.contains ident.idText boolFunctions then
                 total + 1
             else

@@ -122,7 +122,7 @@ let private countBooleanOperators expression =
         count + left + right
     | SynExpr.Paren(expr, _, _, _) ->
         countOperators count expr
-    | SynExpr.Ident ident ->
+    | ExpressionUtilities.Identifier([ ident ], _) ->
         if Set.contains ident.idText boolFunctions then
             count + 1
         else

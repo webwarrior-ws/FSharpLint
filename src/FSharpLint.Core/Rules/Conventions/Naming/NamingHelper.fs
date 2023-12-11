@@ -338,10 +338,9 @@ let rec getPatternIdents<'t> (accessibility:AccessControlLevel) (getIdents:GetId
             |> Array.append argSuggestions
         else
             argSuggestions
-    | SynPat.Named(_, _, access, _) as synPat ->  // ???
+    | SynPat.Named(_, _, access, _) ->  // ???
         let accessibility = checkAccessibility accessibility access
         getIdents accessibility pattern
-        |> Array.append (getPatternIdents accessibility getIdents false synPat)
     | SynPat.Or(p1, p2, _, _) ->
         [|p1; p2|]
         |> Array.collect (getPatternIdents accessibility getIdents false)

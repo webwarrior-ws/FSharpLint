@@ -47,6 +47,8 @@ let private getIdentifiers (args:AstNodeRuleParams) =
         match pattern with
         | SynPat.Named(SynIdent(identifier, _), isThis, _, _) when not isThis ->
             (identifier, identifier.idText, None) |> Array.singleton
+        | SynPat.As(_lshPat, rhsPat, _) ->
+            getPatternIdents AccessControlLevel.Private (getValueOrFunctionIdents args.CheckInfo) false rhsPat
         | _ -> Array.empty
     | _ -> Array.empty
 

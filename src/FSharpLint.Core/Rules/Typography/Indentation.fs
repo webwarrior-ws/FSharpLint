@@ -53,7 +53,10 @@ module ContextBuilder =
         match ranges with
         | (first::others) ->
             let expectedIndentation = first.StartColumn
-            others |> List.map (fun other -> (other.StartLine, (true, expectedIndentation)))
+            others 
+            |> List.collect (fun other -> 
+                [ for lineNumber=other.StartLine to other.EndLine do 
+                    yield (lineNumber, (true, expectedIndentation)) ])
         | _ -> []
 
     let private indentationOverridesForNode (node:AstNode) =
@@ -75,7 +78,12 @@ module ContextBuilder =
                 |> List.map (fun (SynExprRecordField((fieldName, _), _, _, _)) -> fieldName.Range)
                 |> firstRangePerLine
                 |> createAbsoluteAndOffsetOverridesBasedOnFirst)
-        | Expression (SynExpr.ArrayOrListComputed(expr=(SynExpr.ComputationExpr(expr=expr)))) -> // ComputationExpr had isArrayOrList=true, but it has no such field anymore
+        | Expression (SynExpr.ArrayOrListComputed(expr=(SynExpr.ComputationExpr(expr=expr)))) ->
+            extractSeqExprItems expr
+            |> List.map (fun expr -> expr.Range)
+            |> firstRangePerLine
+            |> createAbsoluteAndOffsetOverridesBasedOnFirst
+        | Expression (SynExpr.ArrayOrListComputed(expr=expr)) ->
             extractSeqExprItems expr
             |> List.map (fun expr -> expr.Range)
             |> firstRangePerLine
@@ -88,18 +96,25 @@ module ContextBuilder =
         | Expression (SynExpr.App(funcExpr=(SynExpr.App(isInfix=isInfix; argExpr=innerArg; funcExpr=funcExpr)); argExpr=outerArg))
             when isInfix && outerArg.Range.EndLine <> innerArg.Range.StartLine ->
             match funcExpr with
-            | SynExpr.Ident ident when ident.idText = "op_ColonEquals" ->
+            | ExpressionUtilities.Identifier([ ident ], _) when ident.idText = "op_ColonEquals" ->
                 // := for reference cell assignment should be handled like normal equals, not like an infix operator.
                 []
             | _ ->
                 let expectedIndentation = innerArg.Range.StartColumn
                 createAbsoluteAndOffsetOverrides expectedIndentation outerArg.Range
-        | Expression (SynExpr.ObjExpr(bindings=bindings; newExprRange=newExprRange)) ->
+        | Expression (SynExpr.ObjExpr(members=members; bindings=bindings; newExprRange=newExprRange)) ->
             let expectedIndentation = newExprRange.StartColumn + 4
-            bindings
-            |> List.map (fun binding -> binding.RangeOfBindingWithRhs)
-            |> firstRangePerLine
-            |> List.collect (createAbsoluteAndOffsetOverrides expectedIndentation)
+            let bindingOverrides =
+                bindings
+                |> List.map (fun binding -> binding.RangeOfBindingWithRhs)
+                |> firstRangePerLine
+                |> List.collect (createAbsoluteAndOffsetOverrides expectedIndentation)
+            let memberOverrides =
+                members
+                |> List.map (fun mem -> mem.Range)
+                |> firstRangePerLine
+                |> List.collect (createAbsoluteAndOffsetOverrides expectedIndentation)
+            List.append bindingOverrides memberOverrides
         | Pattern (SynPat.Tuple (elementPats=elemPats)) ->
             elemPats
             |> List.map (fun pat -> pat.Range)

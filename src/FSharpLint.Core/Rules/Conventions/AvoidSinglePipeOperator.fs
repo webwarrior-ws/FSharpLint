@@ -25,14 +25,14 @@ let runner (args: AstNodeRuleParams) =
                 match funcExpr with
                 | SynExpr.App(_exprAtomicFlag, _isInfix, funcExpr, argExpr, range) ->
                     match funcExpr with
-                    | SynExpr.Ident ident ->
+                    | ExpressionUtilities.Identifier([ ident ], _) ->
                         if ident.idText = "op_PipeRight" then
                             match argExpr with
                             | SynExpr.App(_exprAtomicFlag, _isInfix, funcExpr, _argExpr, range) ->
                                 match funcExpr with
                                 | SynExpr.App(_exprAtomicFlag, _isInfix, funcExpr, _argExpr, range) ->
                                     match funcExpr with
-                                    | SynExpr.Ident ident ->
+                                    | ExpressionUtilities.Identifier([ ident ], _) ->
                                         if ident.idText = "op_PipeRight" then
                                             Array.empty
                                         else
