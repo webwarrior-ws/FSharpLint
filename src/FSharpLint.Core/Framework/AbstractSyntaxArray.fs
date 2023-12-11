@@ -226,7 +226,6 @@ module AbstractSyntaxArray =
           Breadcrumbs:AstNode list }
 
     let astToArray ast =
-        System.Console.Error.WriteLine "enter AbstractSyntaxArray.astToArray"
         let astRoot = File ast
 
         let nodes = List<_>()
@@ -243,7 +242,6 @@ module AbstractSyntaxArray =
 
         left.Push (StackedNode(astRoot, 0))
 
-        System.Console.Error.WriteLine "AbstractSyntaxArray.astToArray: before populating nodes"
         while left.Count > 0 do
             let stackedNode = left.Pop()
             let node = stackedNode.Node
@@ -276,7 +274,6 @@ module AbstractSyntaxArray =
 
         let result = Array.zeroCreate nodes.Count
 
-        System.Console.Error.WriteLine "AbstractSyntaxArray.astToArray: before populating result"
         let mutable i = 0
         while i < nodes.Count do
             let skip = skips.[i]

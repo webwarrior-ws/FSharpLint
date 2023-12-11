@@ -38,12 +38,11 @@ module ParseFile =
         | Success of 't
 
     let private parse file source (checker:FSharpChecker, options) =
-        System.Console.Error.WriteLine "enter parse"
         let sourceText = SourceText.ofString source
         let (parseResults, checkFileAnswer) =
             checker.ParseAndCheckFileInProject(file, 0, sourceText, options)
             |> Async.RunSynchronously
-        System.Console.Error.WriteLine "checker.ParseAndCheckFileInProject returned"
+
         match checkFileAnswer with
         | FSharpCheckFileAnswer.Succeeded(typeCheckResults) ->
             { Text = source
@@ -75,12 +74,10 @@ module ParseFile =
 
     /// Parses source code using `FSharp.Compiler.Service`.
     let parseSourceFile fileName source (checker:FSharpChecker) =
-        System.Console.Error.WriteLine "enter parseSourceFile"
         let options = getProjectOptionsFromScript checker fileName source
 
         parse fileName source (checker, options)
 
     let parseSource source (checker:FSharpChecker) =
-        System.Console.Error.WriteLine "enter parseSource"
         let fileName = Path.ChangeExtension(Path.GetTempFileName(), "fsx")
         parseSourceFile fileName source checker

@@ -11,7 +11,6 @@ type TestAstNodeRuleBase (rule:Rule) =
     inherit TestRuleBase.TestRuleBase()
 
     override this.Parse (input:string, ?fileName:string, ?checkFile:bool, ?globalConfig:GlobalRuleConfig) =
-        System.Console.Error.WriteLine "enter TestAstNodeRuleBase.Parse"
         let checker = FSharpChecker.Create(keepAssemblyContents=true)
 
         let parseResults =
@@ -30,16 +29,12 @@ type TestAstNodeRuleBase (rule:Rule) =
 
         match parseResults with
         | ParseFileResult.Success parseInfo ->
-            System.Console.Error.WriteLine "before AbstractSyntaxArray.astToArray"
             let syntaxArray = AbstractSyntaxArray.astToArray parseInfo.Ast
-            System.Console.Error.WriteLine "after AbstractSyntaxArray.astToArray"
             let checkResult =
                 match checkFile with
                 | Some false -> None
                 | _ -> parseInfo.TypeCheckResults
-            System.Console.Error.WriteLine "before runAstNodeRules"
             let suggestions = runAstNodeRules (Array.singleton rule) globalConfig checkResult (Option.defaultValue "" fileName) input (input.Split("\n")) syntaxArray |> fst
-            System.Console.Error.WriteLine "after runAstNodeRules"
             rule.RuleConfig.Cleanup()
 
             suggestions |> Array.iter this.PostSuggestion

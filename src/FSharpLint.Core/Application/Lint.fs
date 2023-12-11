@@ -119,7 +119,6 @@ module Lint =
           NoTabCharactersRuleContext:(string * Range) list }
 
     let runAstNodeRules (rules:RuleMetadata<AstNodeRuleConfig> []) (globalConfig:Rules.GlobalRuleConfig) typeCheckResults (filePath:string) (fileContent:string) (lines:string []) syntaxArray =
-        System.Console.Error.WriteLine "entered runAstNodeRules"
         let mutable indentationRuleState = Map.empty
         let mutable noTabCharactersRuleState = List.empty
 
@@ -155,7 +154,6 @@ module Lint =
         (astNodeSuggestions, context)
 
     let runLineRules (lineRules:Configuration.LineRules) (globalConfig:Rules.GlobalRuleConfig) (filePath:string) (fileContent:string) (lines:string []) (context:Context) =
-        System.Console.Error.WriteLine "entered runLineRules"
         fileContent
         |> String.toLines
         |> Array.collect (fun (line, lineNumber, isLastLine) ->
