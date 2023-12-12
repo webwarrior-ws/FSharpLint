@@ -31,6 +31,23 @@ let gitHome = "https://github.com/" + gitOwner
 let gitUrl = gitHome + "/" + gitName
 
 // --------------------------------------------------------------------------------------
+// Helpers
+// --------------------------------------------------------------------------------------
+let isNullOrWhiteSpace = System.String.IsNullOrWhiteSpace
+
+let exec cmd args dir =
+    let proc =
+        CreateProcess.fromRawCommandLine cmd args
+        |> CreateProcess.ensureExitCodeWithMessage (sprintf "Error while running '%s' with args: %s" cmd args)
+    (if isNullOrWhiteSpace dir then proc
+    else proc |> CreateProcess.withWorkingDirectory dir)
+    |> Proc.run
+    |> ignore
+
+let getBuildParam = Environment.environVar
+let DoNothing = ignore
+
+// --------------------------------------------------------------------------------------
 // Build variables
 // --------------------------------------------------------------------------------------
 
@@ -51,27 +68,28 @@ let nugetVersion =
                             Minor = current.Minor + 1u
                             Patch = 0u
                             Original = None
-                            PreRelease = PreRelease.TryParse "alpha01" }
-        string bumped
+                            PreRelease = None }
+        let bumpedBaseVersion = string bumped
+
+        let nugetPush = System.IO.Path.Combine("fsx", "Tools", "nugetPush.fsx")
+        if not(System.IO.File.Exists nugetPush) then
+            exec "git" "clone https://github.com/nblockchain/fsx.git" "."
+        let procResult =
+            CreateProcess.fromRawCommand
+                "dotnet"
+                [
+                    "fsi"
+                    nugetPush
+                    "--output-version"
+                    bumpedBaseVersion
+                ]
+            |> CreateProcess.redirectOutput
+            |> CreateProcess.ensureExitCode
+            |> Proc.run
+        procResult.Result.Output.Trim()
 
 let packageReleaseNotes = sprintf "%s/blob/v%s/CHANGELOG.md" gitUrl nugetVersion
 
-// --------------------------------------------------------------------------------------
-// Helpers
-// --------------------------------------------------------------------------------------
-let isNullOrWhiteSpace = System.String.IsNullOrWhiteSpace
-
-let exec cmd args dir =
-    let proc =
-        CreateProcess.fromRawCommandLine cmd args
-        |> CreateProcess.ensureExitCodeWithMessage (sprintf "Error while running '%s' with args: %s" cmd args)
-    (if isNullOrWhiteSpace dir then proc
-    else proc |> CreateProcess.withWorkingDirectory dir)
-    |> Proc.run
-    |> ignore
-
-let getBuildParam = Environment.environVar
-let DoNothing = ignore
 // --------------------------------------------------------------------------------------
 // Build Targets
 // --------------------------------------------------------------------------------------
