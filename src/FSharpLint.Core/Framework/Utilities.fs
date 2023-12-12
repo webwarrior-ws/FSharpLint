@@ -52,7 +52,11 @@ module ExpressionUtilities =
             PrettyNaming.DecompileOpName ident.idText
         else ident.idText
 
-    let identAsCompiledOpName = PrettyNaming.CompileOpName
+    let identAsCompiledOpName (identName: string) = 
+        if PrettyNaming.IsOperatorDisplayName identName then
+            PrettyNaming.CompileOpName identName
+        else
+            identName
 
     /// Extracts an expression from parentheses e.g. ((x + 4)) -> x + 4
     let rec removeParens = function

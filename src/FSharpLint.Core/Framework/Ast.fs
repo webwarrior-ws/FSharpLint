@@ -57,7 +57,7 @@ module Ast =
             match exprToFlatten with
             | SynExpr.App(_, _, x, y, _) ->
                 match x with
-                | SynExpr.App(_, true, SynExpr.Ident(op), rhs, _) as app ->
+                | SynExpr.App(_, true, SynExpr.LongIdent(_, SynLongIdent([op], _, _), _, _), rhs, _) as app ->
                     let lhs = y
 
                     match op.idText with
