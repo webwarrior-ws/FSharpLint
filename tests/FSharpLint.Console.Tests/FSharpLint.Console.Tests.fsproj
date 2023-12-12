@@ -3,6 +3,7 @@
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
     <RootNamespace>FSharpLint.Console.Tests</RootNamespace>
+    <NoWarn>$(NoWarn);NU1605</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
