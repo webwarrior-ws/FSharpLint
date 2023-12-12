@@ -277,6 +277,7 @@ Target.create "SelfCheck" (fun _ ->
             "maxLinesInLambdaFunction"
             "maxLinesInMatchLambdaFunction"
             "maxLinesInValue"
+            "maxLinesInFunction"
         ]
 
     let jsonObj = JObject.Parse fsharplintJsonText
