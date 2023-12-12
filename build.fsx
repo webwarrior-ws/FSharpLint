@@ -230,6 +230,7 @@ Target.create "SelfCheck" (fun _ ->
     let recommendedRules =
         [ 
             "recursiveAsyncFunction"
+            "nestedStatements"
         ]
 
     let jsonObj = JObject.Parse fsharplintJsonText
