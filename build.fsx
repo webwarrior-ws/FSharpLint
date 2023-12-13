@@ -4,6 +4,8 @@
 #r "paket: groupref build //"
 #load ".fake/build.fsx/intellisense.fsx"
 
+#r "nuget: Fsdk, Version=0.6.0--date20231213-0703.git-d7a5962"
+
 open Fake.Core
 open Fake.DotNet
 open Fake.Tools
@@ -71,22 +73,7 @@ let nugetVersion =
                             PreRelease = None }
         let bumpedBaseVersion = string bumped
 
-        let nugetPush = System.IO.Path.Combine("fsx", "Tools", "nugetPush.fsx")
-        if not(System.IO.File.Exists nugetPush) then
-            exec "git" "clone https://github.com/nblockchain/fsx.git" "."
-        let procResult =
-            CreateProcess.fromRawCommand
-                "dotnet"
-                [
-                    "fsi"
-                    nugetPush
-                    "--output-version"
-                    bumpedBaseVersion
-                ]
-            |> CreateProcess.redirectOutput
-            |> CreateProcess.ensureExitCode
-            |> Proc.run
-        procResult.Result.Output.Trim()
+        Fsdk.Network.GetNugetPrereleaseVersionFromBaseVersion bumpedBaseVersion
 
 let packageReleaseNotes = sprintf "%s/blob/v%s/CHANGELOG.md" gitUrl nugetVersion
 
