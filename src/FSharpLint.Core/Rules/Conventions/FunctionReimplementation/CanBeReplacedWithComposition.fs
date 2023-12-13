@@ -39,15 +39,15 @@ let private validateLambdaCannotBeReplacedWithComposition fileContents _ lambda 
                         if lastArgument.idText = lambdaArgument.idText then
                             funcString :: calledFunctionIdents
                         else
-                            []
+                            List.Empty
                     | SynExpr.App(_, false, _, _, _) as nextFunction ->
                         lambdaArgumentIsLastApplicationInFunctionCalls 
                             nextFunction 
                             lambdaArgument 
                             (funcString :: calledFunctionIdents)
-                    | _ -> []
-                | _ -> []
-            | _ -> []
+                    | _ -> List.Empty
+                | _ -> List.Empty
+            | _ -> List.Empty
 
         match lambda.Arguments with
         | [singleParameter] ->
@@ -68,7 +68,7 @@ let private validateLambdaCannotBeReplacedWithComposition fileContents _ lambda 
         { Range = range
           Message = Resources.GetString("RulesCanBeReplacedWithComposition")
           SuggestedFix = Some suggestedFix
-          TypeChecks = [] } |> Array.singleton
+          TypeChecks = List.Empty } |> Array.singleton
 
 let runner (args:AstNodeRuleParams) =
     Helper.FunctionReimplementation.checkLambda args (validateLambdaCannotBeReplacedWithComposition args.FileContent)
