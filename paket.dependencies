@@ -54,3 +54,4 @@ group Build
   nuget Fake.IO.FileSystem
   nuget Fake.DotNet.MsBuild
   nuget Fake.Api.GitHub
+  nuget Fsdk == 0.6.0--date20231213-0703.git-d7a5962
