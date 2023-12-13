@@ -23,7 +23,7 @@ let check args _ (clauses:SynMatchClause list) _ =
     |> Array.collect (function
         | SynMatchClause (SynPat.Or (firstPat, secondPat, _, _), _, _, _, _, _) ->
             [|firstPat; secondPat|]
-        | _ -> [||])
+        | _ -> Array.empty)
     |> Array.pairwise
     |> Array.choose (fun (clauseOne, clauseTwo) -> choose clauseOne clauseTwo)
 
