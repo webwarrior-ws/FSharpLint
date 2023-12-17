@@ -1,9 +1,7 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
-
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFrameworks>net6.0</TargetFrameworks>
-
     <Title>FSharpLint.Console</Title>
     <Description>Console application to run FSharpLint.</Description>
     <PackageTags>F#;fsharp;lint;FSharpLint;fslint;cli</PackageTags>
@@ -14,15 +12,15 @@
     <IsPackable>true</IsPackable>
     <RollForward>Major</RollForward>
   </PropertyGroup>
-
   <ItemGroup>
     <Compile Include="Output.fs" />
+    <Compile Include="Version.fs" />
+    <Compile Include="Daemon.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\FSharpLint.Core\FSharpLint.Core.fsproj" />
+    <ProjectReference Include="..\FSharpLint.Client\FSharpLint.Client.fsproj" />
   </ItemGroup>
-
   <Import Project="..\..\.paket\Paket.Restore.targets" />
 </Project>
