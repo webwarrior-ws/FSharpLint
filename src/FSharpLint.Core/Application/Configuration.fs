@@ -567,6 +567,11 @@ let loadConfig (configPath:string) =
     File.ReadAllText configPath
     |> parseConfig
 
+/// Combine two configs into one: all values that are Some in second config override 
+/// corresponding values in first config.
+let combineConfigs (baseConfig: Configuration) (overridingConfig: Configuration) : Configuration =
+    failwith "Not yet implemented"
+
 /// A default configuration specifying every analyser and rule is included as a resource file in the framework.
 /// This function loads and returns this default configuration.
 let defaultConfiguration =
