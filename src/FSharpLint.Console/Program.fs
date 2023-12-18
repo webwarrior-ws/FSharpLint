@@ -37,6 +37,7 @@ with
 and private LintArgs =
     | [<MainCommand; Mandatory>] Target of target:string
     | [<AltCommandLine("-l")>] Lint_Config of lintConfig:string
+    | Partial_Config
     | File_Type of FileType
 // fsharplint:enable UnionDefinitionIndentation
 with
@@ -46,6 +47,7 @@ with
             | Target _ -> "Input to lint."
             | File_Type _ -> "Input type the linter will run against. If this is not set, the file type will be inferred from the file extension."
             | Lint_Config _ -> "Path to the config for the lint."
+            | Partial_Config -> "Indicates that specified lintConfig is a partial config and is applied as a diff to default config."
 // fsharplint:enable UnionCasesNames
 
 let private parserProgress (output:Output.IOutput) = function
@@ -106,11 +108,13 @@ let private start (arguments:ParseResults<ToolArgs>) (toolsPath:Ionide.ProjInfo.
 
         let lintConfig = lintArgs.TryGetResult Lint_Config
 
+        let isPartialConfig = lintArgs.TryGetResult Partial_Config |> Option.isSome
+
         let configParam =
             match lintConfig with
+            | Some configPath when isPartialConfig -> FromFilePartial configPath
             | Some configPath -> FromFile configPath
             | None -> Default
-
 
         let lintParams =
             { CancellationToken = None
