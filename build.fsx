@@ -251,6 +251,7 @@ Target.create "SelfCheck" (fun _ ->
             "favourStaticEmptyFields"
             "favourConsistentThis"
             "avoidTooShortNames"
+            "asyncExceptionWithoutReturn"
         ]
 
     let jsonObj = JObject.Parse fsharplintJsonText
