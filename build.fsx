@@ -291,6 +291,7 @@ Target.create "SelfCheck" (fun _ ->
             "favourConsistentThis"
             "avoidTooShortNames"
             "asyncExceptionWithoutReturn"
+            "maxNumberOfItemsInTuple"            
         ]
 
     let jsonObj = JObject.Parse fsharplintJsonText
