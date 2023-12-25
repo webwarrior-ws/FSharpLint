@@ -9,6 +9,7 @@ open FSharpLint.Framework.Ast
 open FSharpLint.Framework.Rules
 open FSharp.Compiler.CodeAnalysis
 open FSharp.Compiler.Symbols
+open FSharp.Compiler.Syntax
 
 [<RequireQualifiedAccess>]
 type Config = {
@@ -180,6 +181,9 @@ let private isNonStaticInstanceMemberCall (checkFile:FSharpCheckFileResults) nam
     | None -> None
     | Some instanceMember -> instanceMember
 
+let checkMemberCallOnExpression (checkFile:FSharpCheckFileResults) names (range: Range): array<WarningDetails> =
+    failwith "Not implemented"
+
 let private runner (config:Config) (args:AstNodeRuleParams) =
     match (args.AstNode, args.CheckInfo) with
     | (AstNode.Identifier (identifier, range), Some checkInfo) ->
@@ -195,6 +199,10 @@ let private runner (config:Config) (args:AstNodeRuleParams) =
             | Some warningDetails ->
                 warningDetails |> Array.singleton
             | _ -> Array.Empty()
+    | (Ast.Expression(SynExpr.DotGet(expr, _, LongIdentWithDots(identifiers, _), _range)), Some checkInfo) ->
+        let identifier = identifiers |> List.map (fun ident -> ident.idText)
+
+        checkMemberCallOnExpression checkInfo identifier expr.Range
     | _ -> Array.empty
 
 let rule config =
