@@ -195,7 +195,7 @@ let rec private tryFindTypedExpression (range: Range) (expression: FSharpExpr) =
         | FSharpExprPatterns.UnionCaseTag(unionExpr, _unionType) -> 
             tryFindTypedExpression range unionExpr
         | FSharpExprPatterns.ObjectExpr(_objType, baseCallExpr, overrides, interfaceImplementations) -> 
-            let interfaceImlps = interfaceImplementations |> List.map snd |> List.concat
+            let interfaceImlps = interfaceImplementations |> List.collect snd
             baseCallExpr :: (List.append overrides interfaceImlps |> Seq.cast<FSharpExpr> |> Seq.toList)
             |> tryFindFirst
         | FSharpExprPatterns.TraitCall(_sourceTypes, _traitName, _typeArgs, _typeInstantiation, _argTypes, argExprs) -> 
@@ -206,7 +206,29 @@ let rec private tryFindTypedExpression (range: Range) (expression: FSharpExpr) =
             tryFindTypedExpression range guardExpr |> Option.orElse (tryFindTypedExpression range bodyExpr)
         | _ -> None
 
-let private isNonStaticInstanceMemberCall (checkFile:FSharpCheckFileResults) names range:(Option<WarningDetails>) =
+let private getTypedExpressionForRange (checkFile:FSharpCheckFileResults) (range: Range) =
+    let expressions =
+        match checkFile.ImplementationFile with
+        | Some implementationFile ->
+            let rec getExpressions declarations =
+                seq {
+                    for declaration in declarations do
+                        match declaration with
+                        | FSharpImplementationFileDeclaration.Entity(entity, subDecls) ->
+                            yield! getExpressions subDecls
+                        | FSharpImplementationFileDeclaration.MemberOrFunctionOrValue(_,_,body) -> 
+                            yield body
+                        | _ -> () 
+                }
+                    
+            getExpressions implementationFile.Declarations
+        | None -> Seq.empty
+
+    expressions
+    |> Seq.choose (tryFindTypedExpression range)
+    |> Seq.tryHead
+
+let private isNonStaticInstanceMemberCall (checkFile:FSharpCheckFileResults) names (range: Range) :(Option<WarningDetails>) =
 
     let typeChecks =
         (partialInstanceMemberIdentifiers
@@ -221,7 +243,7 @@ let private isNonStaticInstanceMemberCall (checkFile:FSharpCheckFileResults) nam
                 let isSourcePropSameAsReplacementProp = List.tryFind (fun sourceInstanceMemberName -> sourceInstanceMemberName = instanceMemberNameOnly) names
                 match isSourcePropSameAsReplacementProp with
                 | Some _ ->
-                    let typeName = fullyQualifiedInstanceMember.Substring(0, fullyQualifiedInstanceMember.Length - instanceMemberNameOnly.Length - 1)
+                    let typeName = fullyQualifiedInstanceMember.Substring(0, fullyQualifiedInstanceMember.Length - instanceMemberNameOnly.Length - 1)                    
                     let partialAssemblySignature = checkFile.PartialAssemblySignature
 
                     let isEntityOfType (entity:FSharpEntity) =
@@ -276,33 +298,53 @@ let private isNonStaticInstanceMemberCall (checkFile:FSharpCheckFileResults) nam
     | None -> None
     | Some instanceMember -> instanceMember
 
-let private checkMemberCallOnExpression (checkFile:FSharpCheckFileResults) names (range: Range): array<WarningDetails> =
-    let expressions =
-        match checkFile.ImplementationFile with
-        | Some implementationFile ->
-            let rec getExpressions declarations =
-                seq {
-                    for declaration in declarations do
-                        match declaration with
-                        | FSharpImplementationFileDeclaration.Entity(entity, subDecls) ->
-                            yield! getExpressions subDecls
-                        | FSharpImplementationFileDeclaration.MemberOrFunctionOrValue(_,_,body) -> 
-                            yield body
-                        | _ -> () 
-                }
-                    
-            getExpressions implementationFile.Declarations
-        | None -> Seq.empty
-
-    let maybeFoundExpression =
-        expressions
-        |> Seq.choose (tryFindTypedExpression range)
-        |> Seq.tryHead
-
-    match maybeFoundExpression with
+let private checkMemberCallOnExpression 
+    (checkFile: FSharpCheckFileResults) 
+    (flieContent: string) 
+    (range: Range) 
+    (originalRange: Range): array<WarningDetails> =
+    match getTypedExpressionForRange checkFile range with
     | Some expression ->
-        
-        failwith "Not implemented"
+        partialInstanceMemberIdentifiers
+        |> Map.toList
+        |> List.choose (fun (fullyQualifiedInstanceMember, replacementStrategy) ->
+            let typeName = fullyQualifiedInstanceMember.Split(".").[0]
+            let fsharpType = expression.Type
+
+            let matchesType =
+                match typeName with
+                | "Option" ->
+                    // see https://stackoverflow.com/a/70282499/544947
+                    fsharpType.HasTypeDefinition
+                    && fsharpType.TypeDefinition.Namespace = Some "Microsoft.FSharp.Core"
+                    && fsharpType.TypeDefinition.CompiledName = "option`1"
+                | "Map" ->
+                    fsharpType.HasTypeDefinition
+                    && fsharpType.TypeDefinition.Namespace = Some "Microsoft.FSharp.Collections"
+                    && fsharpType.TypeDefinition.CompiledName = "FSharpMap`2"
+                | "List" ->
+                    fsharpType.HasTypeDefinition
+                    && fsharpType.TypeDefinition.Namespace = Some "Microsoft.FSharp.Collections"
+                    && fsharpType.TypeDefinition.CompiledName = "list`1"
+                | _ -> 
+                    fsharpType.HasTypeDefinition
+                    && fsharpType.TypeDefinition.FullName = typeName
+
+            if matchesType then
+                match replacementStrategy with
+                | PatternMatch ->
+                    Some { Range = originalRange
+                           Message = String.Format(Resources.GetString "RulesConventionsNoPartialFunctionsPatternMatchError", fullyQualifiedInstanceMember)
+                           SuggestedFix = None
+                           TypeChecks = (fun () -> true) |> List.singleton }
+                | Function replacementFunctionName ->
+                    Some { Range = originalRange
+                           Message = String.Format(Resources.GetString "RulesConventionsNoPartialFunctionsReplacementError", replacementFunctionName, fullyQualifiedInstanceMember)
+                           SuggestedFix = Some (lazy ( Some { FromText = (ExpressionUtilities.tryFindTextOfRange originalRange flieContent).Value ; FromRange = originalRange; ToText = replacementFunctionName }))
+                           TypeChecks = (fun () -> true) |> List.singleton }
+            else
+                None)
+        |> List.toArray
     | None -> Array.empty
 
 let private runner (config:Config) (args:AstNodeRuleParams) =
@@ -320,11 +362,11 @@ let private runner (config:Config) (args:AstNodeRuleParams) =
             | Some warningDetails ->
                 warningDetails |> Array.singleton
             | _ -> Array.Empty()
-    | (Ast.Expression(SynExpr.DotGet(expr, _, LongIdentWithDots(identifiers, _), _range)), Some checkInfo) ->
-        let names = identifiers |> List.map (fun ident -> ident.idText)
+    | (Ast.Expression(SynExpr.DotGet(expr, _, LongIdentWithDots(_identifiers, _), _range)), Some checkInfo) ->
+        let originalRange = expr.Range
         let expr = ExpressionUtilities.removeParens expr
 
-        checkMemberCallOnExpression checkInfo names expr.Range
+        checkMemberCallOnExpression checkInfo args.FileContent expr.Range originalRange
     | _ -> Array.empty
 
 let rule config =
