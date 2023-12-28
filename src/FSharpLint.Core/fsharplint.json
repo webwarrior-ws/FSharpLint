@@ -144,7 +144,7 @@
     },
     "recordFieldNames": {
         "enabled": true,
-        "config":  {
+        "config": {
             "naming": "PascalCase",
             "underscores": "None"
         }
@@ -325,6 +325,7 @@
             "additionalPartials": []
         }
     },
+    "ensureTailCallDiagnosticsInRecursiveFunctions": { "enabled": false },
     "hints": {
         "add": [
             "not (a =  b) ===> a <> b",
