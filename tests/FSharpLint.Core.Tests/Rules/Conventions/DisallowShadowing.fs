@@ -12,7 +12,9 @@ type TestConventionsDisallowShadowing() =
     member this.``Should produce error for shadowed variable``() =
         this.Parse """
 let foo = 0
-let foo = 1"""
+
+module Foo =
+    let foo = 1"""
 
         Assert.IsTrue this.ErrorsExist
 
