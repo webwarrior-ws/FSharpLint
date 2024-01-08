@@ -27,6 +27,25 @@ let bar foo = foo + 1"""
         Assert.IsTrue this.ErrorsExist
 
     [<Test>]
+    member this.``Should produce error for shadowed variable (function argument, inside function)``() =
+        this.Parse """
+let baz () =
+    let foo = 0
+    let bar foo = foo + 1
+    ()"""
+
+        Assert.IsTrue this.ErrorsExist
+
+    [<Test>]
+    member this.``Should produce error for shadowed variable (function argument, nested)``() =
+        this.Parse """
+let baz foo =
+    let bar foo = foo + 1
+    ()"""
+
+        Assert.IsTrue this.ErrorsExist
+
+    [<Test>]
     member this.``Should produce error for shadowed variable (lambda function argument)``() =
         this.Parse """
 let foo = 0
