@@ -19,6 +19,16 @@ module Foo =
         Assert.IsTrue this.ErrorsExist
 
     [<Test>]
+    member this.``Should produce error for shadowed variable, inside function``() =
+        this.Parse """
+let bar () =
+    let foo = 0
+    let foo = 1
+    foo"""
+
+        Assert.IsTrue this.ErrorsExist
+
+    [<Test>]
     member this.``Should produce error for shadowed variable (function argument)``() =
         this.Parse """
 let foo = 0
@@ -46,10 +56,27 @@ let baz foo =
         Assert.IsTrue this.ErrorsExist
 
     [<Test>]
+    member this.``Should produce error for shadowed variable (function argument, tuple)``() =
+        this.Parse """
+let foo = 0
+let bar (foo, baz) = foo + baz"""
+
+        Assert.IsTrue this.ErrorsExist
+
+    [<Test>]
     member this.``Should produce error for shadowed variable (lambda function argument)``() =
         this.Parse """
 let foo = 0
-(fun foo -> foo + 1) 0"""
+(fun foo -> foo + 1) 0 |> ignore"""
+
+        Assert.IsTrue this.ErrorsExist
+
+    [<Test>]
+    member this.``Should produce error for shadowed variable inside lambda function``() =
+        this.Parse """
+(fun foo ->
+    let foo = foo + 1
+    foo) 0 |> ignore"""
 
         Assert.IsTrue this.ErrorsExist
 
@@ -68,6 +95,36 @@ match 1 with
 let foo = 0
 match (1, 2) with
 | (x, y) as foo -> foo"""
+
+        Assert.IsTrue this.ErrorsExist
+
+    [<Test>]
+    member this.``Should produce error for shadowed variable inside match pattern``() =
+        this.Parse """
+match 1 with
+| foo -> 
+    let foo = foo + 1
+    foo"""
+
+        Assert.IsTrue this.ErrorsExist
+
+    [<Test>]
+    member this.``Should produce error for shadowed variable inside type definition``() =
+        this.Parse """
+type Foo(foo) =
+    let foo = foo + 1
+    
+    member this.Bar = foo"""
+
+        Assert.IsTrue this.ErrorsExist
+
+    [<Test>]
+    member this.``Should produce error for shadowed variable inside member definition``() =
+        this.Parse """
+type Foo() =
+    member this.Bar(foo) = 
+        let foo = foo + 1
+        foo"""
 
         Assert.IsTrue this.ErrorsExist
 
