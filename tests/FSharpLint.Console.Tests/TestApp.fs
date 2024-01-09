@@ -117,3 +117,21 @@ type TestConsoleApplication() =
 
         Assert.AreEqual(-1, returnCode)
         Assert.AreEqual(set ["Use prefix syntax for generic type."], errors)
+
+    [<Test>]
+    member __.``Specifying non-existing file should result in error``() =
+        let fileName = "nonExistantFileWithNoExtension"
+
+        let (returnCode, errors) = main [| "lint"; fileName |]
+
+        Assert.AreNotEqual(0, returnCode)
+        Assert.AreEqual(set [sprintf "Could not find the file: %s on disk" fileName], errors)
+
+    [<Test>]
+    member __.``Specifying file with wrong extension should result in error``() =
+        use input = new TemporaryFile("", "zip")
+
+        let (returnCode, errors) = main [| "lint"; input.FileName |]
+
+        Assert.AreNotEqual(0, returnCode)
+        Assert.AreEqual(set ["File extension not recognised. Valid extensions: .fs, .fsx, .fsproj, .sln"], errors)
