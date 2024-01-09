@@ -17,23 +17,32 @@ type internal RecursiveFunctionInfo =
         Attributes: SynAttributes
     }
 
-let internal (|RecursiveFunction|_|) (astNode: AstNode)  =
+let internal getRecursiveFunctions (astNode: AstNode) : array<RecursiveFunctionInfo>  =
     match astNode with
     | AstNode.ModuleDeclaration (SynModuleDecl.Let (true, bindings, _)) ->
-        match bindings with
-        | SynBinding (_, _, _, _, attributes, _, _, SynPat.LongIdent (SynLongIdent([ident], _, _), _, _, _, _, range), _, body, _, _, _) :: _ ->
-            Some { Identifier = ident; Range = range; Body = body; Attributes = attributes } 
-        | _ -> None
-    | _ -> None
+        [|
+            for binding in bindings do
+                match binding with
+                | SynBinding (_, _, _, _, attributes, _, _, SynPat.LongIdent (SynLongIdent([ident], _, _), _, _, _, _, range), _, body, _, _, _) ->
+                    yield { Identifier = ident; Range = range; Body = body; Attributes = attributes } 
+                | _ -> ()
+        |]
+    | _ -> Array.empty
 
-let internal functionCallsItself (checkInfo: FSharpCheckFileResults) (func: RecursiveFunctionInfo) =
-    let funcName = func.Identifier.idText
+/// Check if callee is called by one of callers.
+let internal functionIsCalledByOneOf 
+    (checkInfo: FSharpCheckFileResults) 
+    (callee: RecursiveFunctionInfo) 
+    (callers: array<RecursiveFunctionInfo>) =
+    let funcName = callee.Identifier.idText
     checkInfo.GetAllUsesOfAllSymbolsInFile()
     |> Seq.exists (fun usage -> 
         usage.Symbol.DisplayName = funcName 
-        && ExpressionUtilities.rangeContainsOtherRange func.Body.Range usage.Range)
+        && Array.exists 
+            (fun caller -> ExpressionUtilities.rangeContainsOtherRange caller.Body.Range usage.Range)
+            callers)
 
-let private emitWarning (func: RecursiveFunctionInfo) =
+let internal emitWarning (func: RecursiveFunctionInfo) =
     { Range = func.Range
       Message =
           String.Format(
@@ -44,9 +53,16 @@ let private emitWarning (func: RecursiveFunctionInfo) =
       TypeChecks = list.Empty }
 
 let runner (args: AstNodeRuleParams) =
-    match args.AstNode, args.CheckInfo with
-    | RecursiveFunction(func), Some checkInfo when not (functionCallsItself checkInfo func) ->
-        emitWarning func |> Array.singleton
+    match args.CheckInfo with
+    | Some checkInfo ->
+        let functions = getRecursiveFunctions args.AstNode
+        functions
+        |> Array.choose
+            (fun func ->
+                if not <| functionIsCalledByOneOf checkInfo func functions then
+                    Some(emitWarning func)
+                else
+                    None)
     | _ -> Array.empty
 
 let rule =
