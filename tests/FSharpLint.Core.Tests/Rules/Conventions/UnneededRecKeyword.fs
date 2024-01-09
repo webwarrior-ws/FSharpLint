@@ -42,3 +42,33 @@ let main args =
     0"""
 
         Assert.IsTrue this.ErrorsExist
+
+    [<Test>]
+    member this.``UnneededRecKeyword should produce error for functions with rec ... and that aren't mutually recursive``() =
+        this.Parse """
+let rec Foo someParam =
+    ()
+and Bar someParam =
+    Foo ()"""
+
+        Assert.IsTrue <| this.ErrorExistsAt(4, 4)
+
+    [<Test>]
+    member this.``UnneededRecKeyword should not produce error for functions with rec ... and that are mutually recursive``() =
+        this.Parse """
+let rec Foo someParam =
+    Bar ()
+and Bar someParam =
+    Foo ()"""
+
+        Assert.IsTrue this.NoErrorsExist
+
+    [<Test>]
+    member this.``UnneededRecKeyword should not produce error for functions with rec ... and that are recursive``() =
+        this.Parse """
+let rec Foo someParam =
+    Foo (someParam + 1)
+and Bar someParam =
+    Bar (someParam + 1)"""
+
+        Assert.IsTrue this.NoErrorsExist
