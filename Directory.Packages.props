@@ -13,7 +13,7 @@
     <PackageVersion Include="Ionide.ProjInfo.FCS" Version="0.58.0" />
     <PackageVersion Include="Ionide.ProjInfo.ProjectSystem" Version="0.58.0" />
     <PackageVersion Include="Ionide.ProjInfo.Sln" Version="0.58.0" />
-    <PackageVersion Include="FSharp.Compiler.Service" Version="41.0.1" />
+    <PackageVersion Include="FSharp.Compiler.Service" Version="41.0.7" />
     <PackageVersion Include="Microsoft.Bcl.AsyncInterfaces" Version="5.0" />
     <PackageVersion Include="Microsoft.Build" Version="16.10" />
     <PackageVersion Include="Microsoft.Build.Framework" Version="16.10" />
