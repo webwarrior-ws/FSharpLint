@@ -50,9 +50,13 @@ let runner (args: AstNodeRuleParams) =
     | _ -> Array.empty
 
 let rule =
-    { Name = "UnneededRecKeyword"
-      Identifier = Identifiers.UnneededRecKeyword
-      RuleConfig =
-        { AstNodeRuleConfig.Runner = runner
-          Cleanup = ignore } }
-    |> AstNodeRule
+    AstNodeRule
+        {
+            Name = "UnneededRecKeyword"
+            Identifier = Identifiers.UnneededRecKeyword
+            RuleConfig =
+                {
+                    AstNodeRuleConfig.Runner = runner
+                    Cleanup = ignore
+                }
+        }

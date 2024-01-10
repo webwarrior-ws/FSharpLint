@@ -89,11 +89,10 @@ let private matchExpressionWithCombinedPatterns len =
     $"""match "dummyString" with
 {patterns}
 | _ -> ()"""
-    |> makeProgram "f()"
 
 /// Generates a body of code containing a match function with multiple patterns.
 let private matchFunction len =
-    $"""    function 
+    makeProgram "f" $"""    function 
 {(Seq.map (fun index -> (sprintf "    | \"%d\"" index)) [| 1..len-1 |] |> String.concat NewLine)} 
     | _ -> ()
 f "dummyString" """

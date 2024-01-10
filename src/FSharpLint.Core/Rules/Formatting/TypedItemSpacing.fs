@@ -83,7 +83,13 @@ let runner (config:Config) (args:AstNodeRuleParams) =
     | _ -> Array.empty
 
 let rule config =
-    { Name = "TypedItemSpacing"
-      Identifier = Identifiers.TypedItemSpacing
-      RuleConfig = { AstNodeRuleConfig.Runner = runner config; Cleanup = ignore } }
-    |> AstNodeRule
+    AstNodeRule
+        {
+            Name = "TypedItemSpacing"
+            Identifier = Identifiers.TypedItemSpacing
+            RuleConfig =
+                {
+                    AstNodeRuleConfig.Runner = runner config
+                    Cleanup = ignore
+                }
+        }
