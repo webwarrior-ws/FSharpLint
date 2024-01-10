@@ -16,11 +16,10 @@ let runner (args: AstNodeRuleParams) =
             let funcName = ident.idText
 
             let functionCalls =
-                symbolUses
-                |> Seq.filter (fun usage ->
+                Seq.filter (fun (usage: FSharp.Compiler.CodeAnalysis.FSharpSymbolUse) ->
                     usage.Symbol.DisplayName = funcName
                     && usage.Range.StartLine >= letRange.StartLine
-                    && usage.Range.EndLine <= letRange.EndLine)
+                    && usage.Range.EndLine <= letRange.EndLine) symbolUses
 
 
             if (functionCalls |> Seq.length) <= 1 then
@@ -40,9 +39,13 @@ let runner (args: AstNodeRuleParams) =
     | _ -> Array.empty
 
 let rule =
-    { Name = "UnneededRecKeyword"
-      Identifier = Identifiers.UnneededRecKeyword
-      RuleConfig =
-        { AstNodeRuleConfig.Runner = runner
-          Cleanup = ignore } }
-    |> AstNodeRule
+    AstNodeRule
+        {
+            Name = "UnneededRecKeyword"
+            Identifier = Identifiers.UnneededRecKeyword
+            RuleConfig =
+                {
+                    AstNodeRuleConfig.Runner = runner
+                    Cleanup = ignore
+                }
+        }

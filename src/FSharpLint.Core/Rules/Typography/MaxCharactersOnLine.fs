@@ -23,7 +23,12 @@ let checkMaxCharactersOnLine (config:Config) (args:LineRuleParams) =
         Array.empty
 
 let rule config =
-    { Name = "MaxCharactersOnLine"
-      Identifier = Identifiers.MaxCharactersOnLine
-      RuleConfig = { LineRuleConfig.Runner = checkMaxCharactersOnLine config } }
-    |> LineRule
+    LineRule
+        {
+            Name = "MaxCharactersOnLine"
+            Identifier = Identifiers.MaxCharactersOnLine
+            RuleConfig =
+                {
+                    LineRuleConfig.Runner = checkMaxCharactersOnLine config
+                }
+        }

@@ -25,8 +25,7 @@ let private validateType (maxMembers:int) members typeRepresentation =
     let members =
         match typeRepresentation with
         | SynTypeDefnRepr.Simple(_) | SynTypeDefnRepr.Exception(_) -> members
-        | SynTypeDefnRepr.ObjectModel(_, members, _) -> members
-        |> getMembers
+        | SynTypeDefnRepr.ObjectModel(_, members, _) -> getMembers members
 
     if List.length members > maxMembers then
         let errorFormatString = Resources.GetString("RulesNumberOfItemsClassMembersError")
@@ -42,7 +41,13 @@ let private runner (config:Helper.NumberOfItems.Config) (args:AstNodeRuleParams)
     | _ -> Array.empty
 
 let rule config =
-    { Name = "MaxNumberOfMembers"
-      Identifier = Identifiers.MaxNumberOfMembers
-      RuleConfig = { AstNodeRuleConfig.Runner = runner config; Cleanup = ignore } }
-    |> AstNodeRule
+    AstNodeRule
+        {
+            Name = "MaxNumberOfMembers"
+            Identifier = Identifiers.MaxNumberOfMembers
+            RuleConfig =
+                {
+                    AstNodeRuleConfig.Runner = runner config
+                    Cleanup = ignore
+                }
+        }

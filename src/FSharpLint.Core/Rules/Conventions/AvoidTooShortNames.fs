@@ -103,9 +103,13 @@ let runner (args:AstNodeRuleParams) =
         suggestions |> Array.map (fun suggestion -> { suggestion with TypeChecks = Option.toList typeCheck }))
 
 let rule =
-    { Name = "AvoidTooShortNames"
-      Identifier = Identifiers.AvoidTooShortNames
-      RuleConfig =
-        { AstNodeRuleConfig.Runner = runner
-          Cleanup = ignore } }
-    |> AstNodeRule
+    AstNodeRule
+        {
+            Name = "AvoidTooShortNames"
+            Identifier = Identifiers.AvoidTooShortNames
+            RuleConfig =
+                {
+                    AstNodeRuleConfig.Runner = runner
+                    Cleanup = ignore
+                }
+        }

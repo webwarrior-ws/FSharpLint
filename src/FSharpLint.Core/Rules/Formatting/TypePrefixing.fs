@@ -115,7 +115,13 @@ let runner (config:Config) args =
 
 
 let rule config =
-    { Name = "TypePrefixing"
-      Identifier = Identifiers.TypePrefixing
-      RuleConfig = { AstNodeRuleConfig.Runner = runner config; Cleanup = ignore } }
-    |> AstNodeRule
+    AstNodeRule
+        {
+            Name = "TypePrefixing"
+            Identifier = Identifiers.TypePrefixing
+            RuleConfig =
+                {
+                    AstNodeRuleConfig.Runner = runner config
+                    Cleanup = ignore
+                }
+        }

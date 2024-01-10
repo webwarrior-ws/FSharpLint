@@ -17,10 +17,9 @@ let private getMemberIdents _ =  function
     | _ -> Array.empty
 
 let private isImplementingInterface parents =
-    parents
-    |> List.exists (function
+    List.exists (function
         | AstNode.MemberDefinition (SynMemberDefn.Interface _) -> true
-        | _ -> false)
+        | _ -> false) parents
 
 let private getIdentifiers (args:AstNodeRuleParams) =
     match args.AstNode with

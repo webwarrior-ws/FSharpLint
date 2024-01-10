@@ -40,11 +40,11 @@ module QuickFixes =
         else String.Empty
 
     let toPascalCase (ident:Ident) = lazy(
-        let pascalCaseIdent = ident.idText |> mapFirstChar Char.ToUpper
+        let pascalCaseIdent = mapFirstChar Char.ToUpper ident.idText
         Some { FromText = ident.idText; FromRange = ident.idRange; ToText = pascalCaseIdent })
 
     let toCamelCase (ident:Ident) = lazy(
-        let camelCaseIdent = ident.idText |> mapFirstChar Char.ToLower
+        let camelCaseIdent = mapFirstChar Char.ToLower ident.idText
         Some { FromText = ident.idText; FromRange = ident.idRange; ToText = camelCaseIdent })
 
 [<Literal>]
@@ -128,16 +128,14 @@ let private checkIdentifierPart (config:NamingConfig) (identifier:Ident) (idText
         | _ -> None
 
     let prefixError =
-        config.Prefix
-        |> Option.bind (fun prefix ->
+        Option.bind (fun prefix ->
             prefixRule prefix idText
-            |> Option.map (formatError2 prefix >> tryAddFix (QuickFixes.addPrefix prefix)))
+            |> Option.map (formatError2 prefix >> tryAddFix (QuickFixes.addPrefix prefix))) config.Prefix
 
     let suffixError =
-        config.Suffix
-        |> Option.bind (fun suffix ->
+        Option.bind (fun suffix ->
             suffixRule suffix idText
-            |> Option.map (formatError2 suffix >> tryAddFix (QuickFixes.addSuffix suffix)))
+            |> Option.map (formatError2 suffix >> tryAddFix (QuickFixes.addSuffix suffix))) config.Suffix
 
     [|
         casingError

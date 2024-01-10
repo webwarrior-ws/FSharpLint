@@ -19,7 +19,7 @@ let private implementsIDisposable (fsharpType:FSharpType) =
         false
 
 let private doesNotImplementIDisposable (checkFile:FSharpCheckFileResults) (ident: SynLongIdent) =
-    let names = ident.LongIdent |> List.map (fun x -> x.idText)
+    let names = List.map (fun (x: Ident) -> x.idText) ident.LongIdent
     let symbol = checkFile.GetSymbolUseAtLocation(ident.Range.StartLine, ident.Range.EndColumn, String.Empty, names)
 
     match symbol with
@@ -54,7 +54,13 @@ let runner args =
     | _ -> Array.empty
 
 let rule =
-    { Name = "RedundantNewKeyword"
-      Identifier = Identifiers.RedundantNewKeyword
-      RuleConfig = { AstNodeRuleConfig.Runner = runner; Cleanup = ignore } }
-    |> AstNodeRule
+    AstNodeRule
+        {
+            Name = "RedundantNewKeyword"
+            Identifier = Identifiers.RedundantNewKeyword
+            RuleConfig =
+                {
+                    AstNodeRuleConfig.Runner = runner
+                    Cleanup = ignore
+                }
+        }

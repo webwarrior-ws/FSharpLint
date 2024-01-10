@@ -47,7 +47,13 @@ let runner args =
     | _ -> Array.empty
 
 let rule =
-    { Name = "ClassMemberSpacing"
-      Identifier = Identifiers.ClassMemberSpacing
-      RuleConfig = { AstNodeRuleConfig.Runner = runner; Cleanup = ignore } }
-    |> AstNodeRule
+    AstNodeRule
+        {
+            Name = "ClassMemberSpacing"
+            Identifier = Identifiers.ClassMemberSpacing
+            RuleConfig =
+                {
+                    AstNodeRuleConfig.Runner = runner
+                    Cleanup = ignore
+                }
+        }

@@ -23,7 +23,13 @@ let private runner (config:Helper.NumberOfItems.Config) (args:AstNodeRuleParams)
     | _ -> Array.empty
 
 let rule config =
-    { Name = "MaxNumberOfFunctionParameters"
-      Identifier = Identifiers.MaxNumberOfFunctionParameters
-      RuleConfig = { AstNodeRuleConfig.Runner = runner config; Cleanup = ignore } }
-    |> AstNodeRule
+    AstNodeRule
+        {
+            Name = "MaxNumberOfFunctionParameters"
+            Identifier = Identifiers.MaxNumberOfFunctionParameters
+            RuleConfig =
+                {
+                    AstNodeRuleConfig.Runner = runner config
+                    Cleanup = ignore
+                }
+        }

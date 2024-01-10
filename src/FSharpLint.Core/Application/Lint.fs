@@ -190,16 +190,17 @@ module Lint =
                 }
 
             let indentationError =
-                config.LineRules.IndentationRule
-                |> Option.map (fun rule -> runLineRuleWithContext rule config.Context.IndentationRuleContext lineParams)
+                Option.map
+                    (fun rule -> runLineRuleWithContext rule config.Context.IndentationRuleContext lineParams)
+                    config.LineRules.IndentationRule
 
             let noTabCharactersError =
-                config.LineRules.NoTabCharactersRule
-                |> Option.map (fun rule -> runLineRuleWithContext rule config.Context.NoTabCharactersRuleContext lineParams)
+                Option.map
+                    (fun rule -> runLineRuleWithContext rule config.Context.NoTabCharactersRuleContext lineParams)
+                    config.LineRules.NoTabCharactersRule
 
             let lineErrors =
-                config.LineRules.GenericLineRules
-                |> Array.collect (fun rule -> runLineRule rule lineParams)
+                Array.collect (fun rule -> runLineRule rule lineParams) config.LineRules.GenericLineRules
 
             [|
                 indentationError |> Option.toArray
@@ -473,7 +474,7 @@ module Lint =
                         |> List.filter (not << isIgnoredFile)
                         |> List.map (fun file -> ParseFile.parseFile file checker (Some projectOptions))
 
-                    let failedFiles = parsedFiles |> List.choose getFailedFiles
+                    let failedFiles = List.choose getFailedFiles parsedFiles
 
                     if List.isEmpty failedFiles then
                         parsedFiles

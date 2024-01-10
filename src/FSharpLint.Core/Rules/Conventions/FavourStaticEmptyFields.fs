@@ -27,11 +27,11 @@ let private getStaticEmptyErrorMessage  (range:FSharp.Compiler.Text.Range) (empt
     errorMessageKey |> formatError
 
 let private generateError (range:FSharp.Compiler.Text.Range) (emptyLiteralType: EmptyLiteralType) =
-    { Range = range
-      Message = getStaticEmptyErrorMessage range emptyLiteralType
-      SuggestedFix = None
-      TypeChecks = List.Empty }
-    |> Array.singleton
+    Array.singleton
+        { Range = range
+          Message = getStaticEmptyErrorMessage range emptyLiteralType
+          SuggestedFix = None
+          TypeChecks = List.Empty }
 
 let private runner (args: AstNodeRuleParams) =
     match args.AstNode with
@@ -45,9 +45,13 @@ let private runner (args: AstNodeRuleParams) =
 
 
 let rule =
-    { Name = "FavourStaticEmptyFields"
-      Identifier = Identifiers.FavourStaticEmptyFields
-      RuleConfig =
-        { AstNodeRuleConfig.Runner = runner
-          Cleanup = ignore } }
-    |> AstNodeRule
+    AstNodeRule
+        {
+            Name = "FavourStaticEmptyFields"
+            Identifier = Identifiers.FavourStaticEmptyFields
+            RuleConfig =
+                {
+                    AstNodeRuleConfig.Runner = runner
+                    Cleanup = ignore
+                }
+        }

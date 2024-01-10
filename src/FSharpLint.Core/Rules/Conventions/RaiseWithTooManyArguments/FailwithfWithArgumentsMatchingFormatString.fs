@@ -28,7 +28,13 @@ let private runner (args:AstNodeRuleParams) =
 
 
 let rule =
-    { Name = "FailwithfWithArgumentsMatchingFormatString"
-      Identifier = Identifiers.FailwithfWithArgumentsMatchingFormattingString
-      RuleConfig = { AstNodeRuleConfig.Runner = runner; Cleanup = ignore } }
-    |> AstNodeRule
+    AstNodeRule
+        {
+            Name = "FailwithfWithArgumentsMatchingFormatString"
+            Identifier = Identifiers.FailwithfWithArgumentsMatchingFormattingString
+            RuleConfig =
+                {
+                    AstNodeRuleConfig.Runner = runner
+                    Cleanup = ignore
+                }
+        }

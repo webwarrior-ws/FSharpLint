@@ -26,7 +26,12 @@ let checkMaxLinesInFile (config:Config) (args:LineRuleParams) =
         Array.empty
 
 let rule config =
-    { Name = "MaxLinesInFile"
-      Identifier = Identifiers.MaxLinesInFile
-      RuleConfig = { LineRuleConfig.Runner = checkMaxLinesInFile config } }
-    |> LineRule
+    LineRule
+        {
+            Name = "MaxLinesInFile"
+            Identifier = Identifiers.MaxLinesInFile
+            RuleConfig =
+                {
+                    LineRuleConfig.Runner = checkMaxLinesInFile config
+                }
+        }

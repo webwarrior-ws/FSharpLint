@@ -94,9 +94,13 @@ let private runner (args: AstNodeRuleParams) =
     | _ -> Array.empty
 
 let rule =
-    { Name = "SuggestUseAutoProperty"
-      Identifier = Identifiers.SuggestUseAutoProperty
-      RuleConfig =
-        { AstNodeRuleConfig.Runner = runner
-          Cleanup = ignore } }
-    |> AstNodeRule
+    AstNodeRule
+        {
+            Name = "SuggestUseAutoProperty"
+            Identifier = Identifiers.SuggestUseAutoProperty
+            RuleConfig =
+                {
+                    AstNodeRuleConfig.Runner = runner
+                    Cleanup = ignore
+                }
+        }

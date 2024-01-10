@@ -42,8 +42,7 @@ module Ast =
     /// Concatenates the nested-list structure of `SynAttributes` into a `SynAttribute list` to keep other code
     /// mostly unchanged.
     let extractAttributes (attrs:SynAttributes) =
-        attrs
-        |> List.collect (fun attrList -> attrList.Attributes)
+        List.collect (fun (attrList: SynAttributeList) -> attrList.Attributes) attrs
 
     /// Extracts an expression from parentheses e.g. ((x + 4)) -> x + 4
     let rec removeParens = function

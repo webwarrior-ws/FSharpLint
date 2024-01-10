@@ -64,7 +64,13 @@ let runner args =
         Array.empty
 
 let rule =
-    { Name = "UnionDefinitionIndentation"
-      Identifier = Identifiers.UnionDefinitionIndentation
-      RuleConfig = { AstNodeRuleConfig.Runner = runner; Cleanup = ignore } }
-    |> AstNodeRule
+    AstNodeRule
+        {
+            Name = "UnionDefinitionIndentation"
+            Identifier = Identifiers.UnionDefinitionIndentation
+            RuleConfig =
+                {
+                    AstNodeRuleConfig.Runner = runner
+                    Cleanup = ignore
+                }
+        }

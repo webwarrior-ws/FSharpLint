@@ -17,7 +17,12 @@ let checkTrailingNewLineInFile (args:LineRuleParams) =
         Array.empty
 
 let rule =
-    { Name = "TrailingNewLineInFile"
-      Identifier = Identifiers.TrailingNewLineInFile
-      RuleConfig = { LineRuleConfig.Runner = checkTrailingNewLineInFile } }
-    |> LineRule
+    LineRule
+        {
+            Name = "TrailingNewLineInFile"
+            Identifier = Identifiers.TrailingNewLineInFile
+            RuleConfig =
+                {
+                    LineRuleConfig.Runner = checkTrailingNewLineInFile
+                }
+        }

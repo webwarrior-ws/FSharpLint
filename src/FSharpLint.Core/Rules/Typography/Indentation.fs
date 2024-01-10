@@ -34,9 +34,8 @@ module ContextBuilder =
     let private createAbsoluteAndOffsetOverrides expectedIndentation (rangeToUpdate:Range) =
         let absoluteOverride = (rangeToUpdate.StartLine, (true, expectedIndentation))
         let relativeOverrides =
-            [(rangeToUpdate.StartLine + 1)..rangeToUpdate.EndLine]
-            |> List.map (fun offsetLine ->
-                (offsetLine, (false, expectedIndentation)))
+            List.map (fun offsetLine ->
+                (offsetLine, (false, expectedIndentation))) [(rangeToUpdate.StartLine + 1)..rangeToUpdate.EndLine]
         (absoluteOverride::relativeOverrides)
 
     let rec private collectRecordFields = function
@@ -173,7 +172,9 @@ let runner context args =
     |> Option.toArray
 
 let rule =
-    { Name = "Indentation"
-      Identifier = Identifiers.Indentation
-      RuleConfig = { Runner = runner } }
-    |> IndentationRule
+    IndentationRule
+        {
+            Name = "Indentation"
+            Identifier = Identifiers.Indentation
+            RuleConfig = { Runner = runner }
+        }

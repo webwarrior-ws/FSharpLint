@@ -480,16 +480,17 @@ module HintParser =
             char(System.Convert.ToInt32(dec, 10))
 
         let private escapeMap =
-            [ ('"', '\"')
-              ('\\', '\\')
-              ('\'', '\'')
-              ('n', '\n')
-              ('t', '\t')
-              ('b', '\b')
-              ('r', '\r')
-              ('a', '\a')
-              ('f', '\f')
-              ('v', '\v') ] |> Map.ofList
+            Map.ofList
+                [ ('"', '\"')
+                  ('\\', '\\')
+                  ('\'', '\'')
+                  ('n', '\n')
+                  ('t', '\t')
+                  ('b', '\b')
+                  ('r', '\r')
+                  ('a', '\a')
+                  ('f', '\f')
+                  ('v', '\v') ]
 
         let private pescapechar: Parser<char, unit> =
             skipChar '\\'
@@ -622,8 +623,7 @@ module HintParser =
         let private pminus: Parser<char, unit> = pchar '-'
 
         let private minusString (minus:char option, charList) =
-            if minus.IsSome then '-' :: charList else charList
-            |> charListToString
+            charListToString (if minus.IsSome then '-' :: charList else charList)
 
         let private phexint: Parser<char list, unit> =
             skipChar '0'

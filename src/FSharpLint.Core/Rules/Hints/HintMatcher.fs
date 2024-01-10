@@ -71,10 +71,9 @@ let private matchLambdaArguments (hintArgs:HintParser.LambdaArg list) (actualArg
             |> List.map matchLambdaArgument
 
         let allArgsMatch =
-            matches
-            |> List.forall (function
+            List.forall (function
                 | LambdaArgumentMatch.NoMatch -> false
-                | _ -> true)
+                | _ -> true) matches
 
         if allArgsMatch then
             matches
@@ -188,7 +187,7 @@ module private MatchExpression =
             let ident = identAsDecompiledOpName ident
             Some(Expression.Identifier([ident]))
         | AstNode.Expression(SynExpr.LongIdent(_, ident, _, _)) ->
-            let identifier = ident.LongIdent |> List.map (fun ident -> ident.idText)
+            let identifier = List.map (fun (ident: Ident) -> ident.idText) ident.LongIdent
             Some(Expression.Identifier(identifier))
         | AstNode.Expression(SynExpr.Const(constant, _)) ->
             matchConst constant |> Option.map Expression.Constant
@@ -303,7 +302,7 @@ module private MatchExpression =
     and private matchFunctionApplication arguments =
         match (arguments.Expression, arguments.Hint) with
         | FuncApp(exprs, _), Expression.FunctionApplication(hintExprs) ->
-            let expressions = exprs |> List.map AstNode.Expression
+            let expressions = List.map AstNode.Expression exprs
             doExpressionsMatch expressions hintExprs arguments
         | _ -> NoMatch
 
@@ -399,7 +398,7 @@ module private MatchPattern =
 
     let private matchPattern = function
         | SynPat.LongIdent(ident, _, _, _, _, _) ->
-            let identifier = ident.LongIdent |> List.map (fun ident -> ident.idText)
+            let identifier = List.map (fun (ident: Ident) -> ident.idText) (ident.LongIdent)
             Some(Pattern.Identifier(identifier))
         | SynPat.Const(constant, _) ->
             matchConst constant |> Option.map Pattern.Constant
@@ -772,7 +771,13 @@ let private runner (config:Config) (args:AstNodeRuleParams) =
     result
 
 let rule config =
-    { Name = "Hints"
-      Identifier = Identifiers.Hints
-      RuleConfig = { AstNodeRuleConfig.Runner = runner config; Cleanup = ignore } }
-    |> AstNodeRule
+    AstNodeRule
+        {
+            Name = "Hints"
+            Identifier = Identifiers.Hints
+            RuleConfig =
+                {
+                    AstNodeRuleConfig.Runner = runner config
+                    Cleanup = ignore
+                }
+        }

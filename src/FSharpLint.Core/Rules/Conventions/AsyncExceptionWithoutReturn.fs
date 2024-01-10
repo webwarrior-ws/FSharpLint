@@ -65,9 +65,13 @@ let runner args =
     | _ -> Array.empty
 
 let rule =
-    { Name = "AsyncExceptionWithoutReturn"
-      Identifier = Identifiers.AsyncExceptionWithoutReturn
-      RuleConfig =
-        { AstNodeRuleConfig.Runner = runner
-          Cleanup = ignore } }
-    |> AstNodeRule
+    AstNodeRule
+        {
+            Name = "AsyncExceptionWithoutReturn"
+            Identifier = Identifiers.AsyncExceptionWithoutReturn
+            RuleConfig =
+                {
+                    AstNodeRuleConfig.Runner = runner
+                    Cleanup = ignore
+                }
+        }

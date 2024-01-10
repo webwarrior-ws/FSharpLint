@@ -23,8 +23,13 @@ let private runner (args:AstNodeRuleParams) =
     | _ -> Array.empty
 
 let rule =
-    { Name = "WildcardNamedWithAsPattern"
-      Identifier = Identifiers.WildcardNamedWithAsPattern
-      RuleConfig = { AstNodeRuleConfig.Runner = runner; Cleanup = ignore } }
-    |> AstNodeRule
-
+    AstNodeRule
+        {
+            Name = "WildcardNamedWithAsPattern"
+            Identifier = Identifiers.WildcardNamedWithAsPattern
+            RuleConfig =
+                {
+                    AstNodeRuleConfig.Runner = runner
+                    Cleanup = ignore
+                }
+        }

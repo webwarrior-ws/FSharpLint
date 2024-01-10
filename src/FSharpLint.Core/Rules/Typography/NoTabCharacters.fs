@@ -18,7 +18,7 @@ module ContextBuilder =
             current
 
 let private isInLiteralString literalStrings range =
-    literalStrings |> Seq.exists (fun (_, literalRange) -> ExpressionUtilities.rangeContainsOtherRange literalRange range)
+     Seq.exists (fun (_, literalRange) -> ExpressionUtilities.rangeContainsOtherRange literalRange range) literalStrings
 
 let checkNoTabCharacters literalStrings (args:LineRuleParams) =
     let indexOfTab = args.Line.IndexOf('\t')
@@ -36,7 +36,9 @@ let checkNoTabCharacters literalStrings (args:LineRuleParams) =
         Array.empty
 
 let rule =
-    { Name = "NoTabCharacters"
-      Identifier = Identifiers.NoTabCharacters
-      RuleConfig = { Runner = checkNoTabCharacters } }
-    |> NoTabCharactersRule
+    NoTabCharactersRule
+        {
+            Name = "NoTabCharacters"
+            Identifier = Identifiers.NoTabCharacters
+            RuleConfig = { Runner = checkNoTabCharacters }
+        }

@@ -57,7 +57,13 @@ let private runner (config:Helper.NumberOfItems.Config) (args:AstNodeRuleParams)
     | _ -> Array.empty
 
 let rule config =
-    { Name = "MaxNumberOfBooleanOperatorsInCondition"
-      Identifier = Identifiers.MaxNumberOfBooleanOperatorsInCondition
-      RuleConfig = { AstNodeRuleConfig.Runner = runner config; Cleanup = ignore } }
-    |> AstNodeRule
+    AstNodeRule
+        {
+            Name = "MaxNumberOfBooleanOperatorsInCondition"
+            Identifier = Identifiers.MaxNumberOfBooleanOperatorsInCondition
+            RuleConfig =
+                {
+                    AstNodeRuleConfig.Runner = runner config
+                    Cleanup = ignore
+                }
+        }

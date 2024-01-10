@@ -30,7 +30,13 @@ let check args _ (clauses:SynMatchClause list) _ =
 let runner (args:AstNodeRuleParams) = PatternMatchFormatting.isActualPatternMatch args check
 
 let rule =
-    { Name = "PatternMatchOrClausesOnNewLine"
-      Identifier = Identifiers.PatternMatchOrClausesOnNewLine
-      RuleConfig = { AstNodeRuleConfig.Runner = runner; Cleanup = ignore } }
-    |> AstNodeRule
+    AstNodeRule
+        {
+            Name = "PatternMatchOrClausesOnNewLine"
+            Identifier = Identifiers.PatternMatchOrClausesOnNewLine
+            RuleConfig =
+                {
+                    AstNodeRuleConfig.Runner = runner
+                    Cleanup = ignore
+                }
+        }

@@ -55,7 +55,12 @@ let checkTrailingWhitespaceOnLine (config:Config) (args:LineRuleParams) =
         Array.empty
 
 let rule config =
-    { Name = "TrailingWhitespaceOnLine"
-      Identifier = Identifiers.TrailingWhitespaceOnLine
-      RuleConfig = { LineRuleConfig.Runner = checkTrailingWhitespaceOnLine config } }
-    |> LineRule
+    LineRule
+        {
+            Name = "TrailingWhitespaceOnLine"
+            Identifier = Identifiers.TrailingWhitespaceOnLine
+            RuleConfig =
+                {
+                    LineRuleConfig.Runner = checkTrailingWhitespaceOnLine config
+                }
+        }

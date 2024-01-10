@@ -37,7 +37,13 @@ let checkTupleCommaSpacing (args:AstNodeRuleParams) (tupleExprs:SynExpr list) tu
 let runner (args:AstNodeRuleParams) = TupleFormatting.isActualTuple args checkTupleCommaSpacing
 
 let rule =
-    { Name = "TupleCommaSpacing"
-      Identifier = Identifiers.TupleCommaSpacing
-      RuleConfig = { AstNodeRuleConfig.Runner = runner; Cleanup = ignore } }
-    |> AstNodeRule
+    AstNodeRule
+        {
+            Name = "TupleCommaSpacing"
+            Identifier = Identifiers.TupleCommaSpacing
+            RuleConfig =
+                {
+                    AstNodeRuleConfig.Runner = runner
+                    Cleanup = ignore
+                }
+        }

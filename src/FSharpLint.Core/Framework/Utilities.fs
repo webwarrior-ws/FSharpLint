@@ -39,7 +39,7 @@ module ExpressionUtilities =
     let getSymbolFromIdent (checkFile:FSharpCheckFileResults option) expr =
         match (checkFile, expr) with
         | Some(checkFile), Identifier(ident, range) ->
-            let identNames = ident |> List.map (fun x -> x.idText)
+            let identNames = List.map (fun (x: Ident) -> x.idText) ident
 
             checkFile.GetSymbolUseAtLocation(
                 range.StartLine,
@@ -83,7 +83,7 @@ module ExpressionUtilities =
 
     /// Converts a LongIdentWithDots to a String.
     let longIdentWithDotsToString (lidwd: SynLongIdent) =
-        lidwd.LongIdent |> longIdentToString
+        longIdentToString lidwd.LongIdent
 
     /// Tries to find the source code within a given range.
     let tryFindTextOfRange (range:Range) (text:string) =
@@ -114,7 +114,7 @@ module ExpressionUtilities =
 
     /// Converts a list of type args to its string representation.
     let typeArgsToString (text:string) (typeArgs:SynType list) =
-        let typeStrings = typeArgs |> List.choose (synTypeToString text)
+        let typeStrings = List.choose (synTypeToString text) typeArgs
         if typeStrings.Length = typeArgs.Length
         then typeStrings |> String.concat "," |> Some
         else None

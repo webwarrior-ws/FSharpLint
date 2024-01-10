@@ -29,7 +29,13 @@ let checkTupleHasParentheses (args:AstNodeRuleParams) _ range parentNode =
 let runner (args:AstNodeRuleParams) = TupleFormatting.isActualTuple args checkTupleHasParentheses
 
 let rule =
-    { Name = "TupleParentheses"
-      Identifier = Identifiers.TupleParentheses
-      RuleConfig = { AstNodeRuleConfig.Runner = runner; Cleanup = ignore } }
-    |> AstNodeRule
+    AstNodeRule
+        {
+            Name = "TupleParentheses"
+            Identifier = Identifiers.TupleParentheses
+            RuleConfig =
+                {
+                    AstNodeRuleConfig.Runner = runner
+                    Cleanup = ignore
+                }
+        }

@@ -66,7 +66,13 @@ let check (config:Config) (args:AstNodeRuleParams) matchExprRange (clauses:SynMa
 let runner (config:Config) (args:AstNodeRuleParams) = PatternMatchFormatting.isActualPatternMatch args (check config)
 
 let rule config =
-    { Name = "PatternMatchClauseIndentation"
-      Identifier = Identifiers.PatternMatchClauseIndentation
-      RuleConfig = { AstNodeRuleConfig.Runner = runner config; Cleanup = ignore } }
-    |> AstNodeRule
+    AstNodeRule
+        {
+            Name = "PatternMatchClauseIndentation"
+            Identifier = Identifiers.PatternMatchClauseIndentation
+            RuleConfig =
+                {
+                    AstNodeRuleConfig.Runner = runner config
+                    Cleanup = ignore
+                }
+        }
