@@ -221,7 +221,7 @@ Target.create "SelfCheck" (fun _ ->
         printfn "Checking %s..." coreProj.FullName
         exec "dotnet" (sprintf "run lint %s" coreProj.FullName) consoleProj.Directory.FullName
     
-    printfn "Run FsharpLint with defualt rules."
+    printfn "Running self-check with default rules."
     runLinter ()
 
     let fsharplintJsonDir = Path.Combine("src", "FSharpLint.Core", "fsharplint.json")
