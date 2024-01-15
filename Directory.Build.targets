@@ -21,7 +21,7 @@
         <Copy SourceFiles="@(FSharpFormattingDlls)"
               DestinationFolder="$(MSBuildThisFileDirectory)packages/docs/FSharp.Formatting/lib/netstandard2.0/"
               ContinueOnError="false" />
-        <Copy SourceFiles="$(NugetPackageRoot)markdig/0.34.0/lib/netstandard2.0/markdig.dll"
+        <Copy SourceFiles="$(NugetPackageRoot)markdig/0.34.0/lib/netstandard2.0/Markdig.dll"
               DestinationFolder="$(MSBuildThisFileDirectory)packages/docs/Markdig/lib/netstandard2.0/"
               ContinueOnError="false" />
         <Copy SourceFiles="$(NugetPackageRoot)newtonsoft.json/13.0.3/lib/netstandard2.0/Newtonsoft.Json.dll"
