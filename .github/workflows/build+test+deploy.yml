@@ -32,6 +32,12 @@ jobs:
       run: dotnet tool restore
     - name: Restore dependencies
       run: dotnet restore
+    - name: check floders
+      run: | 
+        ls /home/runner/.nuget/packages
+        ls /home/runner/.nuget/packages/markdig
+        ls /home/runner/.nuget/packages/markdig/0.34.0
+        ls /home/runner/.nuget/packages/markdig/0.34.0/lib/netstandard2.0
     - name: Build
       run: dotnet fake build -t Build
     - name: Run tests
