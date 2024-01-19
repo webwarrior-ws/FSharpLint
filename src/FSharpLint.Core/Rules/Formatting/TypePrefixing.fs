@@ -9,9 +9,13 @@ open FSharpLint.Framework.Rules
 open FSharpLint.Framework.ExpressionUtilities
 
 type Mode =
-    | Hybrid = 0
+    | HybridWeak = 0
     | Always = 1
     | Never = 2
+    | HybridStrict = 3
+
+    /// obsolete: use HybridStrict or HybridWeak instead (default: HybridWeak)
+    ///| Hybrid = 0
 
 [<RequireQualifiedAccess>]
 type Config = { Mode: Mode }
@@ -38,7 +42,7 @@ let checkTypePrefixing (config:Config) (args:AstNodeRuleParams) range typeName t
         | "Ref" as typeName ->
 
             // Prefer postfix.
-            if not isPostfix && config.Mode <> Mode.Always
+            if not isPostfix && (config.Mode = Mode.HybridStrict || config.Mode = Mode.Never)
             then
                 let suggestedFix = lazy(
                     (ExpressionUtilities.tryFindTextOfRange range args.FileContent, typeArgs)
@@ -53,7 +57,7 @@ let checkTypePrefixing (config:Config) (args:AstNodeRuleParams) range typeName t
                 else
                     None
 
-        | "array" when config.Mode <> Mode.Always ->
+        | "array" when config.Mode = Mode.HybridStrict || config.Mode = Mode.Never ->
             // Prefer special postfix (e.g. int []).
             let suggestedFix = lazy(
                 (ExpressionUtilities.tryFindTextOfRange range args.FileContent, typeArgs)

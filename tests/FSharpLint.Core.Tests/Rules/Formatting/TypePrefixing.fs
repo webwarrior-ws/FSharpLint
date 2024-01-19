@@ -6,7 +6,7 @@ open FSharpLint.Rules.TypePrefixing
 
 [<TestFixture>]
 type TestFormattingHybridTypePrefixing() =
-    inherit TestAstNodeRuleBase.TestAstNodeRuleBase(TypePrefixing.rule { Config.Mode = Mode.Hybrid })
+    inherit TestAstNodeRuleBase.TestAstNodeRuleBase(TypePrefixing.rule { Config.Mode = Mode.HybridStrict })
 
     [<Test>]
     member this.``Error for F# List type prefix syntax``() =

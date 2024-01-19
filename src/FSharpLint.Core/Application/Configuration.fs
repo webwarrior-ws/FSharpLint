@@ -136,7 +136,7 @@ let constructRuleWithConfig rule ruleConfig =
 
 let constructTypePrefixingRuleWithConfig rule (ruleConfig: RuleConfig<TypePrefixing.Config>) =
     if ruleConfig.Enabled then
-        let config = ruleConfig.Config |> Option.defaultValue { Mode = TypePrefixing.Mode.Hybrid }
+        let config = ruleConfig.Config |> Option.defaultValue { Mode = TypePrefixing.Mode.HybridWeak }
         Some(rule config)
     else
         None
