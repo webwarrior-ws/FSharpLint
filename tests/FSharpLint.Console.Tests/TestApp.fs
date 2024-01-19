@@ -117,3 +117,28 @@ type TestConsoleApplication() =
 
         Assert.AreEqual(-1, returnCode)
         Assert.AreEqual(set ["Use prefix syntax for generic type."], errors)
+
+    [<Test>]
+    member __.``TypePrefixing rule Hybrid mode should still work (after it gets renamed to HybridWeak)``() =
+        let fileContent = """
+        {
+            "typePrefixing": {
+                "enabled": true,
+                "config": {
+                    "mode": "Hybrid"
+                }
+            }
+        }
+        """
+        use config = new TemporaryFile(fileContent, "json")
+
+        let input = """
+        module Program
+
+        type X = int Generic
+        """
+
+        let (returnCode, errors) = main [| "lint"; "--lint-config"; config.FileName; input |]
+
+        Assert.AreEqual(-1, returnCode)
+        Assert.AreEqual(set ["Use prefix syntax for generic type."], errors)
