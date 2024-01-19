@@ -67,6 +67,9 @@ let checkTypePrefixing (config:Config) (args:AstNodeRuleParams) range typeName t
               SuggestedFix = Some suggestedFix
               TypeChecks = [] } |> Some
 
+        | "array" when config.Mode = Mode.HybridWeak ->
+            None
+
         | typeName ->
             match (isPostfix, config.Mode) with
             | true, Mode.Never ->
