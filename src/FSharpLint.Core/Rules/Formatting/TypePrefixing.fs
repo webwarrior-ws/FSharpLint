@@ -15,7 +15,7 @@ type Mode =
     | HybridStrict = 3
 
     /// obsolete: use HybridStrict or HybridWeak instead (default: HybridWeak)
-    ///| Hybrid = 0
+    | Hybrid = 128
 
 [<RequireQualifiedAccess>]
 type Config = { Mode: Mode }
