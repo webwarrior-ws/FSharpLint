@@ -5,7 +5,7 @@ open FSharpLint.Rules
 open FSharpLint.Rules.TypePrefixing
 
 [<TestFixture>]
-type TestFormattingHybridTypePrefixing() =
+type TestFormattingHybridStrictTypePrefixing() =
     inherit TestAstNodeRuleBase.TestAstNodeRuleBase(TypePrefixing.rule { Config.Mode = Mode.HybridStrict })
 
     [<Test>]
@@ -237,6 +237,120 @@ type T = Generic<int>
 
         this.Parse source
         Assert.AreEqual(expected, this.ApplyQuickFix source)
+
+[<TestFixture>]
+type TestFormattingHybridWeakTypePrefixing() =
+    inherit TestAstNodeRuleBase.TestAstNodeRuleBase(TypePrefixing.rule { Config.Mode = Mode.HybridWeak })
+
+    [<Test>]
+    member this.``Ignore F# List type prefix syntax``() =
+        this.Parse """
+module Program
+
+type T = list<int>
+"""
+
+        Assert.IsTrue this.NoErrorsExist
+
+    [<Test>]
+    member this.``Ignore for F# List type postfix syntax``() =
+        this.Parse """
+module Program
+
+type T = int list
+"""
+
+        Assert.IsTrue this.NoErrorsExist
+
+    [<Test>]
+    member this.``Ignore F# Option type prefix syntax``() =
+        this.Parse """
+module Program
+
+type T = Option<int>
+"""
+
+        Assert.IsTrue this.NoErrorsExist
+
+    [<Test>]
+    member this.``Ignore F# Option type postfix syntax``() =
+        this.Parse """
+module Program
+
+type T = int option
+"""
+
+        Assert.IsTrue this.NoErrorsExist
+
+    [<Test>]
+    member this.``Ignore F# ref type prefix syntax``() =
+        this.Parse """
+module Program
+
+type T = ref<int>
+"""
+
+        Assert.IsTrue this.NoErrorsExist
+
+    [<Test>]
+    member this.``Ignore F# ref type postfix syntax``() =
+        this.Parse """
+module Program
+
+type T = int ref
+"""
+
+        Assert.IsTrue this.NoErrorsExist
+
+    [<Test>]
+    member this.``Ignore F# array type prefix syntax``() =
+        this.Parse """
+module Program
+
+type T = array<int>
+"""
+
+        Assert.IsTrue this.NoErrorsExist
+
+    [<Test>]
+    member this.``Ignore F# array type standard postfix syntax``() =
+        this.Parse """
+module Program
+
+type T = int array
+"""
+
+        Assert.IsTrue this.NoErrorsExist
+
+    [<Test>]
+    member this.``Ignore F# array type special postfix syntax``() =
+        this.Parse """
+module Program
+
+type T = int []
+"""
+
+        Assert.IsTrue this.NoErrorsExist
+
+    [<Test>]
+    member this.``Error for generic type postfix syntax``() =
+        this.Parse """
+module Program
+
+type X = int Generic
+"""
+
+        Assert.IsTrue(this.ErrorExistsAt(4, 9))
+
+    [<Test>]
+    member this.``No error for generic type prefix syntax``() =
+        this.Parse """
+module Program
+
+type X = Generic<int>
+"""
+
+        Assert.IsTrue this.NoErrorsExist
 
 [<TestFixture>]
 type TestFormattingAlwaysTypePrefixing() =
