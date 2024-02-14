@@ -58,7 +58,7 @@ let private runner (args: AstNodeRuleParams) =
                             false,
                             _attributes,
                             _xmlDoc,
-                            SynValData (Some memberFlags, _, _, _),
+                            SynValData (Some memberFlags, _, _),
                             SynPat.LongIdent (memberIdentifier, _, _, argPats, _, _),
                             _returnInfo,
                             expr,
