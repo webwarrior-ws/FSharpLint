@@ -110,23 +110,6 @@ let PackageReleaseNotes baseProps =
 // Build Targets
 // --------------------------------------------------------------------------------------
 
-Target.create "Clean" (fun _ ->
-    Shell.cleanDirs [buildDir; nugetDir]
-)
-
-Target.create "Build" (fun _ ->
-    DotNet.build id "FSharpLint.sln"
-)
-
-let filterPerformanceTests (p:DotNet.TestOptions) = { p with Filter = Some "\"TestCategory!=Performance\""; Configuration = DotNet.Release }
-
-Target.create "Test" (fun _ ->
-  DotNet.test filterPerformanceTests "tests/FSharpLint.Core.Tests"
-  DotNet.test filterPerformanceTests "tests/FSharpLint.Console.Tests"
-  DotNet.restore id "tests/FSharpLint.FunctionalTest.TestedProject/FSharpLint.FunctionalTest.TestedProject.sln"
-  DotNet.test filterPerformanceTests "tests/FSharpLint.FunctionalTest"
-)
-
 // --------------------------------------------------------------------------------------
 // Release Targets
 // --------------------------------------------------------------------------------------
@@ -195,11 +178,6 @@ Target.create "Push" (fun _ ->
 // --------------------------------------------------------------------------------------
 Target.create "Default" DoNothing
 Target.create "Release" DoNothing
-
-"Clean"
-  ==> "Build"
-  ==> "Test"
-  ==> "Default"
 
 "Default"
   ==> "Pack"
