@@ -114,25 +114,6 @@ let PackageReleaseNotes baseProps =
 // Release Targets
 // --------------------------------------------------------------------------------------
 
-Target.create "Pack" (fun _ ->
-    let properties = PackageReleaseNotes ([
-        ("Version", nugetVersion);
-        ("Authors", authors)
-        ("PackageProjectUrl", gitUrl)
-        ("RepositoryType", "git")
-        ("RepositoryUrl", gitUrl)
-        ("PackageLicenseExpression", "MIT")
-    ])
-
-    DotNet.pack (fun p ->
-        { p with
-            Configuration = DotNet.BuildConfiguration.Release
-            OutputPath = Some nugetDir
-            MSBuildParams = { p.MSBuildParams with Properties = properties }
-        }
-    ) "FSharpLint.sln"
-)
-
 Target.create "Push" (fun _ ->
     let push key =
         Paket.push (fun p -> { p with WorkingDir = nugetDir; ApiKey = key; ToolType = ToolType.CreateLocalTool() })
@@ -180,7 +161,6 @@ Target.create "Default" DoNothing
 Target.create "Release" DoNothing
 
 "Default"
-  ==> "Pack"
   ==> "Push"
   ==> "Release"
 
