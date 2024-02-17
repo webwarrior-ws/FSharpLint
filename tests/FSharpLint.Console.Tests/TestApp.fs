@@ -117,3 +117,108 @@ type TestConsoleApplication() =
 
         Assert.AreEqual(-1, returnCode)
         Assert.AreEqual(set ["Use prefix syntax for generic type."], errors)
+
+    [<Test>]
+    member __.``TypePrefixing rule Hybrid mode should still work (after it gets renamed to HybridWeak)``() =
+        let fileContent = """
+        {
+            "typePrefixing": {
+                "enabled": true,
+                "config": {
+                    "mode": "Hybrid"
+                }
+            }
+        }
+        """
+        use config = new TemporaryFile(fileContent, "json")
+
+        let input = """
+        module Program
+
+        type X = int Generic
+        """
+
+        let (returnCode, errors) = main [| "lint"; "--lint-config"; config.FileName; input |]
+
+        Assert.AreEqual(-1, returnCode)
+        Assert.AreEqual(set ["Use prefix syntax for generic type."], errors)
+
+    [<Test>]
+    member __.``TypePrefixing rule HybridStrict mode should complain about List<Foo>``() =
+        let fileContent = """
+        {
+            "typePrefixing": {
+                "enabled": true,
+                "config": {
+                    "mode": "HybridStrict"
+                }
+            }
+        }
+        """
+        use config = new TemporaryFile(fileContent, "json")
+
+        let input = """
+        module Program
+
+        type X = List<int>
+        """
+
+        let (returnCode, errors) = main [| "lint"; "--lint-config"; config.FileName; input |]
+
+        Assert.AreEqual(-1, returnCode, "Return code of HybridStrict against List<Foo> should not be zero")
+        Assert.AreNotEqual(0, errors.Count, "Number of errors for HybridStrict mode against List<Foo> should not be zero")
+        Assert.AreEqual("Use postfix syntax for F# type List.", errors.MaximumElement)
+
+    [<Test>]
+    member __.``TypePrefixing rule HybridStrict mode should complain about array<Foo>``() =
+        let fileContent = """
+        {
+            "typePrefixing": {
+                "enabled": true,
+                "config": {
+                    "mode": "HybridStrict"
+                }
+            }
+        }
+        """
+        use config = new TemporaryFile(fileContent, "json")
+
+        let input = """
+        module Program
+
+        type X = array<int>
+        """
+
+        let (returnCode, errors) = main [| "lint"; "--lint-config"; config.FileName; input |]
+
+        Assert.AreEqual(-1, returnCode, "Return code of HybridStrict against array<Foo> should not be zero")
+        Assert.AreNotEqual(0, errors.Count, "Number of errors for HybridStrict mode against array<Foo> should not be zero")
+        Assert.AreEqual("Use special postfix syntax for F# type array.", errors.MaximumElement)
+
+    [<Test>]
+    member __.``TypePrefixing rule HybridWeak mode should not complain about List<Foo>``() =
+        let fileContent = """
+        {
+            "typePrefixing": {
+                "enabled": true,
+                "config": {
+                    "mode": "HybridWeak"
+                }
+            }
+        }
+        """
+        use config = new TemporaryFile(fileContent, "json")
+
+        let input = """
+        module Program
+
+        type X = List<int>
+        """
+
+        let (returnCode, errors) = main [| "lint"; "--lint-config"; config.FileName; input |]
+
+        Assert.AreEqual(0, returnCode)
+        if errors.Count = 0 then
+            Assert.AreEqual(0, errors.Count, "Return code of HybridWeak against List<Foo> should not be zero (=success; no suggestions)")
+        else
+            Assert.AreEqual(0, errors.Count, "No errors should happen, but we got at least one: " + errors.MaximumElement)

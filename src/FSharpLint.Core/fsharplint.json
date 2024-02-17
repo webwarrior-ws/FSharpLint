@@ -14,7 +14,7 @@
     "typePrefixing": {
         "enabled": false,
         "config": {
-            "mode": "Hybrid"
+            "mode": "HybridWeak"
         }
     },
     "unionDefinitionIndentation": { "enabled": false },
