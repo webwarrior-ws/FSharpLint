@@ -127,26 +127,9 @@ Target.create "Test" (fun _ ->
   DotNet.test filterPerformanceTests "tests/FSharpLint.FunctionalTest"
 )
 
-Target.create "Docs" (fun _ ->
-    exec "dotnet"  @"fornax build" "docs"
-)
-
 // --------------------------------------------------------------------------------------
 // Release Targets
 // --------------------------------------------------------------------------------------
-
-Target.create "BuildRelease" (fun _ ->
-    let properties = ("Version", nugetVersion) |> List.singleton |> PackageReleaseNotes
-
-    DotNet.build (fun p ->
-        { p with
-            Configuration = DotNet.BuildConfiguration.Release
-            OutputPath = Some buildDir
-            MSBuildParams = { p.MSBuildParams with Properties = properties }
-        }
-    ) "FSharpLint.sln"
-)
-
 
 Target.create "Pack" (fun _ ->
     let properties = PackageReleaseNotes ([
@@ -217,10 +200,6 @@ Target.create "Release" DoNothing
   ==> "Build"
   ==> "Test"
   ==> "Default"
-
-"Clean"
- ==> "BuildRelease"
- ==> "Docs"
 
 "Default"
   ==> "Pack"
