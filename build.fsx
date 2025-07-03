@@ -2,8 +2,7 @@
 // FAKE build script
 // --------------------------------------------------------------------------------------
 #r "nuget: System.Reactive"
-#r "nuget: MSBuild.StructuredLogger, Version=2.1.815"
-//#r "nuget: FSharp.Core, Version=8.0.0.0"
+#r "nuget: MSBuild.StructuredLogger"
 #r "nuget: Fake.Core.Target"
 #r "nuget: Fake.Core.Process"
 #r "nuget: Fake.DotNet.Cli"
