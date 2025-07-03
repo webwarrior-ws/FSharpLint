@@ -16,6 +16,7 @@ on:
 
 env:
   DOTNET_VERSION: 9.0.301
+  DOTNET_VERSION_FOR_FAKE: 6.0.428
 
 jobs:
   buildAndTest:
@@ -33,7 +34,9 @@ jobs:
     - name: Setup .NET
       uses: actions/setup-dotnet@v3
       with:
-        dotnet-version: ${{ env.DOTNET_VERSION }}
+        dotnet-version: |
+          ${{ env.DOTNET_VERSION }}
+          ${{ env.DOTNET_VERSION_FOR_FAKE }}
     - name: Restore tools
       run: dotnet tool restore
     - name: Restore dependencies
