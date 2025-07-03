@@ -1,7 +1,20 @@
 // --------------------------------------------------------------------------------------
 // FAKE build script
 // --------------------------------------------------------------------------------------
-#r "paket: groupref build //"
+#r "nuget: System.Reactive"
+#r "nuget: MSBuild.StructuredLogger, 2.1.815"
+#r "nuget: Fake.Core.Target"
+#r "nuget: Fake.Core.Process"
+#r "nuget: Fake.DotNet.Cli"
+#r "nuget: Fake.Core.ReleaseNotes"
+#r "nuget: Fake.DotNet.AssemblyInfoFile"
+#r "nuget: Fake.DotNet.Paket"
+#r "nuget: Fake.Tools.Git"
+#r "nuget: Fake.Core.Environment"
+#r "nuget: Fake.Core.UserInput"
+#r "nuget: Fake.IO.FileSystem"
+#r "nuget: Fake.DotNet.MsBuild"
+#r "nuget: Fake.Api.GitHub"
 #load ".fake/build.fsx/intellisense.fsx"
 
 open Fake.Core
