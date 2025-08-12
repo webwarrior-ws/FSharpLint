@@ -66,15 +66,33 @@ module QuickFixes =
         let camelCaseIdent = ident.idText |> mapFirstChar Char.ToLower
         Some { FromText = ident.idText; FromRange = ident.idRange; ToText = camelCaseIdent })
 
-    let toAllLowercase (ident:Ident) = lazy(
-        let newIdent = ident.idText.ToLower()
-        //TODO: in case Underscores=AllowAny or AllowInfix, and ident is PascalCase or CamelCase, try to inject them when case changes
-        Some { FromText = ident.idText; FromRange = ident.idRange; ToText = newIdent })
+    let splitByCaseChange (name: string) : seq<string> =
+        let builder = System.Text.StringBuilder()
+        seq {
+            let mutable isUppercase = Char.IsUpper name.[0]
+            for char in name do
+                if isUppercase <> Char.IsUpper char then
+                    yield builder.ToString()
+                    builder.Clear() |> ignore
+                builder.Append char |> ignore
+            if builder.Length > 0 then
+                yield builder.ToString()
+        }
 
-    let toAllUppercase (ident:Ident) = lazy(
-        let newIdent = ident.idText.ToUpper()
-        //TODO: in case Underscores=AllowAny or AllowInfix, and ident is PascalCase or CamelCase, try to inject them when case changes
-        Some { FromText = ident.idText; FromRange = ident.idRange; ToText = newIdent })
+    let private convertAllToCase (caseMapping: string -> string) (underscoresConfig:  Option<NamingUnderscores>) (ident:Ident) =
+        lazy(
+            let newIdent = 
+                match underscoresConfig with
+                | Some NamingUnderscores.AllowAny | Some NamingUnderscores.AllowInfix ->
+                    let parts = splitByCaseChange ident.idText |> Seq.map caseMapping
+                    String.Join('_', parts)
+                | _ -> caseMapping ident.idText
+            Some { FromText = ident.idText; FromRange = ident.idRange; ToText = newIdent }
+        )
+
+    let toAllLowercase = convertAllToCase (fun part -> part.ToLower())
+    
+    let toAllUppercase = convertAllToCase (fun part -> part.ToUpper())
 
 [<Literal>]
 let private NumberOfExpectedBackticks = 4
@@ -166,10 +184,10 @@ let private checkIdentifierPart (config:NamingConfig) (identifier:Ident) (idText
             |> Option.map (formatError >> tryAddFix QuickFixes.toCamelCase)
         | Some NamingCase.AllLowercase ->
             lowercaseRule idText
-            |> Option.map (formatError >> tryAddFix QuickFixes.toAllLowercase)
+            |> Option.map (formatError >> tryAddFix (QuickFixes.toAllLowercase config.Underscores))
         | Some NamingCase.AllUppercase ->
             uppercaseRule idText
-            |> Option.map (formatError >> tryAddFix QuickFixes.toAllUppercase)
+            |> Option.map (formatError >> tryAddFix (QuickFixes.toAllUppercase config.Underscores))
         | _ -> None
 
     let underscoresError =
