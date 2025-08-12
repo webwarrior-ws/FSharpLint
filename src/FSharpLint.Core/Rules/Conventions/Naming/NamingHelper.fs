@@ -104,10 +104,10 @@ let isCamelCase (identifier:string) =
     else Char.IsLower withoutUnderscorePrefix.[0]
 
 let isAllLowercase (identifier:string) =
-    Seq.forall Char.IsLower identifier
+    Seq.forall (fun char -> Char.IsLower char || (not <| Char.IsLetter char)) identifier
 
 let isAllUppercase (identifier:string) =
-    Seq.forall Char.IsUpper identifier
+    Seq.forall (fun char -> Char.IsUpper char || (not <| Char.IsLetter char)) identifier
 
 let private pascalCaseRule (identifier:string) =
     if not (isPascalCase identifier) then Some "RulesNamingConventionsPascalCaseError"
