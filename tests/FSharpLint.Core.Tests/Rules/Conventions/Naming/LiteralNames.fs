@@ -71,7 +71,7 @@ let cat = 5
         Assert.IsTrue(this.ErrorExistsAt(5, 4))
 
 let infixConfig =
-    { NamingConfig.Naming = Some NamingCase.PascalCase
+    { NamingConfig.Naming = Some NamingCase.AllLowercase
       Underscores = Some NamingUnderscores.AllowInfix
       Prefix = None
       Suffix = None }
@@ -86,7 +86,7 @@ type TestConventionsLiteralNamesInfix() =
 module Program
 
 [<Literal>]
-let Super_Cat = 5
+let super_cat = 5
 """
 
         this.AssertNoWarnings()
@@ -97,7 +97,7 @@ let Super_Cat = 5
 module Program
 
 [<Literal>]
-let _Cat = 5
+let _cat = 5
 """
 
         Assert.IsTrue(this.ErrorExistsOnLine 5)
@@ -108,19 +108,19 @@ let _Cat = 5
 module Program
 
 [<Literal>]
-let Cat_ = 5
+let cat_ = 5
 """
 
         Assert.IsTrue(this.ErrorExistsOnLine 5)
 
     [<Test>]
-    member this.LiteralIsNoUnderscore() =
+    member this.LiteralIsNoUnderscoreButCamelCase() =
         this.Parse """
 module Program
 
 [<Literal>]
-let SuperCat = 5
+let superCat = 5
 """
 
-        this.AssertNoWarnings()
+        Assert.IsTrue(this.ErrorExistsOnLine 5)
 
