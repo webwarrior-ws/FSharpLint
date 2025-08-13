@@ -66,17 +66,20 @@ module QuickFixes =
         let camelCaseIdent = ident.idText |> mapFirstChar Char.ToLower
         Some { FromText = ident.idText; FromRange = ident.idRange; ToText = camelCaseIdent })
 
+    /// Splits camelCase or PascalCase identifier into parts based on letter case.
+    /// E.g. "camelCase" -> seq { "camel"; "case" }
     let splitByCaseChange (name: string) : seq<string> =
-        let builder = System.Text.StringBuilder()
+        let partitionPoints =
+            seq {
+                yield 0
+                for (index, (current, next)) in name |> Seq.pairwise |> Seq.indexed  do
+                    if (Char.IsUpper next || not (Char.IsLetter next)) && not (Char.IsUpper current) then
+                        yield index + 1
+                yield name.Length
+            }
         seq {
-            let mutable isUppercase = Char.IsUpper name.[0]
-            for char in name do
-                if isUppercase <> Char.IsUpper char then
-                    yield builder.ToString()
-                    builder.Clear() |> ignore
-                builder.Append char |> ignore
-            if builder.Length > 0 then
-                yield builder.ToString()
+            for (start, finish) in partitionPoints |> Seq.pairwise do
+                yield name.Substring(start, finish - start)
         }
 
     let private convertAllToCase (caseMapping: string -> string) (underscoresConfig:  Option<NamingUnderscores>) (ident:Ident) =
