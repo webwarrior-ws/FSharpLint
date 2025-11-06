@@ -124,8 +124,10 @@ jobs:
         ls .\artifacts
         dotnet tool install --global dotnet-fsharplint --add-source .\artifacts
     
-    - name: Run installed FSharpLint
-      run: dotnet fsharplint lint .\src\FSharpLint.Core\FSharpLint.Core.fsproj
+    - name: Run installed FSharpLint on .NET6 project
+      run: |
+        dotnet build .\TestNet6Proj\TestNet6Proj.fsproj
+        dotnet fsharplint lint .\TestNet6Proj\TestNet6Proj.fsproj
 
   deployReleaseDocs:
     needs: deployReleaseBinaries
