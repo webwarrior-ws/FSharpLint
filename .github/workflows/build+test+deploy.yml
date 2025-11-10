@@ -151,6 +151,11 @@ jobs:
     
     - name: Lint FSharpLint.Console project
       run: dotnet fsharplint lint ./src/FSharpLint.Console/FSharpLint.Console.fsproj
+    
+    - name: Run FSharpLint on .NET6 project
+      run: |
+        dotnet build .\TestNet6Proj\TestNet6Proj.fsproj
+        dotnet fsharplint lint .\TestNet6Proj\TestNet6Proj.fsproj
 
   deployReleaseDocs:
     needs: deployReleaseBinaries
