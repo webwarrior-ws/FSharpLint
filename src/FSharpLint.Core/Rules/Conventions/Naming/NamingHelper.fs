@@ -39,7 +39,7 @@ module QuickFixes =
             str |> Seq.takeWhile (fun char -> char = '_') |> String.Concat
         let withoutPrefix = str.Substring prefix.Length
         if withoutPrefix.Length > 0 then
-            let firstChar = map withoutPrefix.[0] |> string
+            let firstChar = map withoutPrefix[0] |> string
             let rest = withoutPrefix.Substring 1
             prefix + firstChar + rest
         else String.Empty
