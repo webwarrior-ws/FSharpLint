@@ -104,7 +104,7 @@ let private matchConst = function
     | SynConst.UIntPtr value  -> Some(Constant.UIntPtr(unativeint value))
     | SynConst.IntPtr value  -> Some(Constant.IntPtr(nativeint value))
     | SynConst.UserNum (value, endChar)  ->
-        Some(Constant.UserNum(System.Numerics.BigInteger.Parse(value), endChar.[0]))
+        Some(Constant.UserNum(System.Numerics.BigInteger.Parse(value), endChar[0]))
     | SynConst.Unit -> Some Constant.Unit 
     | SynConst.UInt16s _ 
     | SynConst.SourceIdentifier _
