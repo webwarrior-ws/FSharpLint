@@ -159,7 +159,7 @@ jobs:
         run: echo "$HOME/.dotnet/tools" >> $GITHUB_PATH
       - run: ls -l
       - name: Lint FSharpLint.Console project (net8.0 only)
-        run: dotnet fsharplint lint --framework net8.0 --file-type project ./src/FSharpLint.Console/FSharpLint.Console.fsproj
+        run: dotnet fsharplint lint --framework net8.0 ./src/FSharpLint.Console/FSharpLint.Console.fsproj
         
   testReleaseBinariesWithDotNet10:
     needs: packReleaseBinaries
