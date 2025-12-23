@@ -40,6 +40,7 @@ and private LintArgs =
     | [<MainCommand; Mandatory>] Target of target:string
     | [<AltCommandLine("-l")>] Lint_Config of lintConfig:string
     | File_Type of FileType
+    | [<GatherUnrecognized; Hidden>] UnrecognizedArguments of string
 // fsharplint:enable UnionDefinitionIndentation
 with
     interface IArgParserTemplate with
@@ -48,6 +49,7 @@ with
             | Target _ -> "Input to lint."
             | File_Type _ -> "Input type the linter will run against. If this is not set, the file type will be inferred from the file extension."
             | Lint_Config _ -> "Path to the config for the lint."
+            | UnrecognizedArguments _ -> "---"
 // fsharplint:enable UnionCasesNames
 
 /// Expands a wildcard pattern to a list of matching files.
@@ -136,6 +138,10 @@ let private start (arguments:ParseResults<ToolArgs>) (toolsPath:Ionide.ProjInfo.
 
     match arguments.GetSubCommand() with
     | Lint lintArgs ->
+        match lintArgs.TryGetResult UnrecognizedArguments with
+        | Some unrecognizedArgs ->
+            handleError $"Unrecognized command line arguments: {unrecognizedArgs}"
+        | None -> ()
 
         let handleLintResult = function
             | LintResult.Success(warnings) ->
