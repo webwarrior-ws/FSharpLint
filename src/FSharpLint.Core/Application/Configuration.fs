@@ -377,7 +377,7 @@ let flattenConfig (config:Configuration) =
         Array.choose
             id
             [|
-                config.Hints |> Option.map (fun config -> HintMatcher.rule { HintMatcher.Config.HintTrie = parseHints (getOrEmptyList config.Add) }) |> Option.toArray
+                config.Hints |> Option.map (fun config -> HintMatcher.rule { HintMatcher.Config.HintTrie = parseHints (getOrEmptyList config.Add) })
 
                 config.TypedItemSpacing |> Option.bind (constructRuleWithConfig TypedItemSpacing.rule)
                 config.TypePrefixing |> Option.bind (constructTypePrefixingRuleWithConfig TypePrefixing.rule)
