@@ -54,8 +54,9 @@ let private getParameterWithBelowMinimumLength (pats: SynPat list): (Ident * str
 
 let private getIdentifiers (args:AstNodeRuleParams) =
     match args.AstNode with
-    | AstNode.Expression(SynExpr.LetOrUseBang(_, _, _, pat, _, _, _, _, _)) ->
-        getParameterWithBelowMinimumLength [pat]
+    | AstNode.Expression(SynExpr.LetOrUse(_, _, _, true, bindings, _, _, _)) ->
+        //getParameterWithBelowMinimumLength [pat]
+        failwith "TODO: FIX"
     | AstNode.Expression(SynExpr.Lambda(_, _, lambdaArgs, _, _, _, _)) ->
         let lambdaIdent = FunctionReimplementation.getLambdaParamIdent lambdaArgs
         match lambdaIdent with

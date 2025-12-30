@@ -237,7 +237,7 @@ module Ast =
         | SynPat.Attrib(pattern, _, _)
         | SynPat.Paren(pattern, _) -> add <| Pattern pattern
         | SynPat.Named(_) -> ()
-        | SynPat.Record(patternsAndIdentifier, _) -> List.revIter (fun (_, _, pattern) -> pattern |> Pattern |> add) patternsAndIdentifier
+        | SynPat.Record(patternsAndIdentifier, _) -> patternsAndIdentifier |> List.revIter (fun namePatPair -> namePatPair.Pattern |> Pattern |> add)
         | SynPat.Const(_)
         | SynPat.Wild(_)
         | SynPat.FromParseError(_)
@@ -303,13 +303,6 @@ module Ast =
         | SynExpr.DotNamedIndexedPropertySet(expression, _, expression1, expression2, _)
         | SynExpr.For(_, _, _, _, expression, _, expression1, expression2, _) ->
             addMany [Expression expression2; Expression expression1; Expression expression]
-        | SynExpr.LetOrUseBang(_, _, _, pattern, rightHandSide, andBangs, leftHandSide, _, _) ->
-            addMany [Expression rightHandSide; Expression leftHandSide]
-            // TODO: is the the correct way to handle the new `and!` syntax?
-            List.iter (fun (SynExprAndBang(_, _, _, pattern, body, _, _)) ->
-                addMany [Expression body; Pattern pattern]
-            ) andBangs
-            add <| Pattern pattern
         | SynExpr.ForEach(_, _, _, _, pattern, expression, expression1, _) ->
             addMany [Expression expression1; Expression expression; Pattern pattern]
         | SynExpr.MatchLambda(_, _, matchClauses, _, _) ->
@@ -327,7 +320,7 @@ module Ast =
         | SynExpr.Upcast(expression, synType, _)
         | SynExpr.Downcast(expression, synType, _) ->
             addMany [Type synType; Expression expression]
-        | SynExpr.LetOrUse(_, _, bindings, expression, _, _) ->
+        | SynExpr.LetOrUse(_, _, _, _isBang, bindings, expression, _, _) ->
             add <| Expression expression
             List.revIter (Binding >> add) bindings
         | SynExpr.Ident(ident) -> add <| Identifier([ident.idText], ident.idRange)
@@ -414,7 +407,7 @@ module Ast =
         | SynArgPats.Pats(patterns) ->
             patterns |> List.revIter (Pattern >> add)
         | SynArgPats.NamePatPairs(namePatterns, _, _) ->
-            namePatterns |> List.revIter (fun (_, _, pattern) -> pattern |> Pattern |> add)
+            namePatterns |> List.revIter (fun namePatterns -> namePatterns.Pattern |> Pattern |> add)
 
     let inline private typeRepresentationChildren node add =
         match node with
@@ -471,7 +464,7 @@ module Ast =
         | Else(expression)
         | Expression(expression) -> expressionChildren expression add
 
-        | File(ParsedInput.ImplFile(ParsedImplFileInput(_, _, _, _, _, moduleOrNamespaces, _, _, _))) ->
+        | File(ParsedInput.ImplFile(ParsedImplFileInput(_, _, _, _, moduleOrNamespaces, _, _, _))) ->
             moduleOrNamespaces |> List.revIter (ModuleOrNamespace >> add)
 
         | UnionCase(unionCase) -> unionCaseChildren unionCase add
