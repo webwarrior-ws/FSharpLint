@@ -134,7 +134,7 @@ module IgnoreFiles =
 
 // Non-standard record field naming for config serialization.
 // fsharplint:disable RecordFieldNames
-type RuleConfig<'Config> = {
+type RuleConfig<'Config when 'Config: comparison> = {
     Enabled:bool
     Config:'Config option
 }
