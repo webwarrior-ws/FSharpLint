@@ -118,7 +118,7 @@ let private checkIfPartialIdentifier (config:Config) (identifier:string) (range:
 // fsharplint:disable EnsureTailCallDiagnosticsInRecursiveFunctions
 let rec private tryFindTypedExpression (range: Range) (expression: FSharpExpr) = 
     let tryFindFirst exprs = 
-        exprs |> Seq.choose (tryFindTypedExpression range) |> Seq.tryHead
+        exprs |> List.choose (tryFindTypedExpression range) |> List.tryHead
     if expression.Range = range then
         Some expression
     else
