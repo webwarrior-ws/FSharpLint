@@ -11,7 +11,9 @@ let (</>) path1 path2 = Path.Combine(path1, path2)
 
 let basePath = TestContext.CurrentContext.TestDirectory </> ".." </> ".." </> ".." </> ".." </> ".."
 let fsharpLintConsoleDll = basePath </> "src" </> "FSharpLint.Console" </> "bin" </> "Release" </> "net9.0" </> "dotnet-fsharplint.dll"
-let fsharpConsoleOutputDir = Path.GetFullPath (Path.GetDirectoryName(fsharpLintConsoleDll))
+let fsharpConsoleOutputDir = 
+    Folder.FromFile fsharpLintConsoleDll
+    |> Option.defaultWith (fun () -> failwith $"Console project output dir (dir of file {fsharpLintConsoleDll}) does not exist.")
 
 [<RequireQualifiedAccess>]
 type ToolStatus = | Available | NotAvailable
@@ -19,11 +21,12 @@ type ToolLocationOverride(toolStatus: ToolStatus) =
     let tempFolder = Path.GetTempFileName()
 
     do match toolStatus with
-       | ToolStatus.Available -> Environment.SetEnvironmentVariable("FSHARPLINT_SEARCH_PATH_OVERRIDE", fsharpConsoleOutputDir)
+       | ToolStatus.Available -> 
+            Environment.SetEnvironmentVariable("FSHARPLINT_SEARCH_PATH_OVERRIDE", Folder.Unwrap fsharpConsoleOutputDir)
        | ToolStatus.NotAvailable ->
             let path = Environment.GetEnvironmentVariable("PATH")
             // ensure bin dir is not in path
-            if path.Contains(fsharpConsoleOutputDir, StringComparison.InvariantCultureIgnoreCase) then
+            if path.Contains(Folder.Unwrap fsharpConsoleOutputDir, StringComparison.InvariantCultureIgnoreCase) then
                 Assert.Inconclusive()
 
             File.Delete(tempFolder)
@@ -37,22 +40,28 @@ type ToolLocationOverride(toolStatus: ToolStatus) =
             if File.Exists tempFolder then
                 File.Delete tempFolder
 
-let runVersionCall filePath (service: IFSharpLintService) =
+let runVersionCall (file: File) (service: IFSharpLintService) =
     async {
         let request =
             {
-                FilePath = filePath
+                FilePath = file |> File.Unwrap
             }
         let! version = service.VersionAsync(request) |> Async.AwaitTask
         return version
     }
     |> Async.RunSynchronously
 
+let getTestHintsFile () =
+    let filePath = basePath </> "tests" </> "FSharpLint.FunctionalTest.TestedProject" </> "FSharpLint.FunctionalTest.TestedProject.NetCore" </> "TestHints.fs"
+    filePath
+    |> File.From
+    |> Option.defaultWith (fun () -> failwith $"File {filePath} does not exist.")
+
 [<Test>]
 let TestDaemonNotFound() =
     using (new ToolLocationOverride(ToolStatus.NotAvailable)) <| fun _ ->
 
-        let testHintsFile = basePath </> "tests" </> "FSharpLint.FunctionalTest.TestedProject" </> "FSharpLint.FunctionalTest.TestedProject.NetCore" </> "TestHints.fs"
+        let testHintsFile = getTestHintsFile()
         let fsharpLintService: IFSharpLintService = new LSPFSharpLintService() :> IFSharpLintService
         let versionResponse = runVersionCall testHintsFile fsharpLintService
 
@@ -62,7 +71,7 @@ let TestDaemonNotFound() =
 let TestDaemonVersion() =
     using (new ToolLocationOverride(ToolStatus.Available)) <| fun _ ->
 
-        let testHintsFile = basePath </> "tests" </> "FSharpLint.FunctionalTest.TestedProject" </> "FSharpLint.FunctionalTest.TestedProject.NetCore" </> "TestHints.fs"
+        let testHintsFile = getTestHintsFile()
         let fsharpLintService: IFSharpLintService = new LSPFSharpLintService() :> IFSharpLintService
         let versionResponse = runVersionCall testHintsFile fsharpLintService
 
@@ -76,7 +85,7 @@ let TestDaemonVersion() =
 let TestFilePathShouldBeAbsolute() =
     using (new ToolLocationOverride(ToolStatus.Available)) <| fun _ ->
 
-        let testHintsFile = ".." </> "tests" </> "FSharpLint.FunctionalTest.TestedProject" </> "FSharpLint.FunctionalTest.TestedProject.NetCore" </> "TestHints.fs"
+        let testHintsFile = getTestHintsFile()
         let fsharpLintService: IFSharpLintService = new LSPFSharpLintService() :> IFSharpLintService
         let versionResponse = runVersionCall testHintsFile fsharpLintService
 
@@ -86,7 +95,7 @@ let TestFilePathShouldBeAbsolute() =
 let TestFileShouldExists() =
     using (new ToolLocationOverride(ToolStatus.Available)) <| fun _ ->
 
-        let testHintsFile = basePath </> "tests" </> "FSharpLint.FunctionalTest.TestedProject" </> "FSharpLint.FunctionalTest.TestedProject.NetCore" </> "TestHintsOOOPS.fs"
+        let testHintsFile = getTestHintsFile()
         let fsharpLintService: IFSharpLintService = new LSPFSharpLintService() :> IFSharpLintService
         let versionResponse = runVersionCall testHintsFile fsharpLintService
 
