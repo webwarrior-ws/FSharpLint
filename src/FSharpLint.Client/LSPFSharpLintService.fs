@@ -152,15 +152,15 @@ let private isCancellationRequested (requested: bool) : Result<unit, FSharpLintS
     else
         Ok()
 
-let private getFolderFor filePath (): Result<Folder, FSharpLintServiceError> =
-    let handleFile filePath =
-        if not (isPathAbsolute filePath) then
+let private getFolderFor (file: FileInfo) (): Result<Folder, FSharpLintServiceError> =
+    let handleFile (file: FileInfo) =
+        if not (isPathAbsolute file.FullName) then
             Error FSharpLintServiceError.FilePathIsNotAbsolute
-        else match Folder.FromFile filePath with
+        else match Folder.FromFile file.FullName with
              | None -> Error FSharpLintServiceError.FileDoesNotExist
              | Some folder -> Ok folder
 
-    handleFile filePath
+    handleFile file
 
 let private getDaemon (agent: MailboxProcessor<Msg>) (folder: Folder) : Result<JsonRpc, FSharpLintServiceError> =
     let daemon = agent.PostAndReply(fun replyChannel -> GetDaemon(folder, replyChannel))
@@ -169,21 +169,21 @@ let private getDaemon (agent: MailboxProcessor<Msg>) (folder: Folder) : Result<J
     | Ok daemon -> Ok daemon
     | Error gde -> Error(FSharpLintServiceError.DaemonNotFound gde)
 
-let private fileNotFoundResponse filePath : Task<FSharpLintResponse> =
+let private fileNotFoundResponse (file: FileInfo) : Task<FSharpLintResponse> =
     { Code = int FSharpLintResponseCode.ErrFileNotFound
-      FilePath = filePath
-      Result = Content $"File \"%s{filePath}\" does not exist."
+      FilePath = file.FullName
+      Result = Content $"File \"%s{file.FullName}\" does not exist."
     }
     |> Task.FromResult
 
-let private fileNotAbsoluteResponse filePath : Task<FSharpLintResponse> =
+let private fileNotAbsoluteResponse (file: FileInfo) : Task<FSharpLintResponse> =
     { Code = int FSharpLintResponseCode.ErrFilePathIsNotAbsolute
-      FilePath = filePath
-      Result = Content $"\"%s{filePath}\" is not an absolute file path. Relative paths are not supported."
+      FilePath = file.FullName
+      Result = Content $"\"%s{file.FullName}\" is not an absolute file path. Relative paths are not supported."
     }
     |> Task.FromResult
 
-let private daemonNotFoundResponse filePath (error: GetDaemonError) : Task<FSharpLintResponse> =
+let private daemonNotFoundResponse (file: FileInfo) (error: GetDaemonError) : Task<FSharpLintResponse> =
     let content, code =
         match error with
         | GetDaemonError.DotNetToolListError(DotNetToolListError.ProcessStartError(ProcessStartError.ExecutableFileNotFound(executableFile,
@@ -218,25 +218,25 @@ let private daemonNotFoundResponse filePath (error: GetDaemonError) : Task<FShar
             FSharpLintResponseCode.ErrDaemonCreationFailed)
 
     { Code = int code
-      FilePath = filePath
+      FilePath = file.FullName
       Result = Content content
     }
     |> Task.FromResult
 
-let private cancellationWasRequestedResponse filePath : Task<FSharpLintResponse> =
+let private cancellationWasRequestedResponse (file: FileInfo) : Task<FSharpLintResponse> =
     { Code = int FSharpLintResponseCode.ErrCancellationWasRequested
-      FilePath = filePath
+      FilePath = file.FullName
       Result = Content "FSharpLintService is being or has been disposed."
     }
     |> Task.FromResult
 
-let mapResultToResponse (filePath: string) (result: Result<Task<FSharpLintResponse>, FSharpLintServiceError>) =
+let mapResultToResponse (file: FileInfo) (result: Result<Task<FSharpLintResponse>, FSharpLintServiceError>) =
     match result with
     | Ok version -> version
-    | Error FSharpLintServiceError.FileDoesNotExist -> fileNotFoundResponse filePath
-    | Error FSharpLintServiceError.FilePathIsNotAbsolute -> fileNotAbsoluteResponse filePath
-    | Error(FSharpLintServiceError.DaemonNotFound err) -> daemonNotFoundResponse filePath err
-    | Error FSharpLintServiceError.CancellationWasRequested -> cancellationWasRequestedResponse filePath
+    | Error FSharpLintServiceError.FileDoesNotExist -> fileNotFoundResponse file
+    | Error FSharpLintServiceError.FilePathIsNotAbsolute -> fileNotAbsoluteResponse file
+    | Error(FSharpLintServiceError.DaemonNotFound err) -> daemonNotFoundResponse file err
+    | Error FSharpLintServiceError.CancellationWasRequested -> cancellationWasRequestedResponse file
 
 type LSPFSharpLintService() =
     let cts = new CancellationTokenSource()
@@ -250,7 +250,7 @@ type LSPFSharpLintService() =
 
         member _.VersionAsync(versionRequest: VersionRequest, ?cancellationToken: CancellationToken) : Task<FSharpLintResponse> =
             isCancellationRequested cts.IsCancellationRequested
-            |> Result.bind (getFolderFor (versionRequest.FilePath))
+            |> Result.bind (getFolderFor (FileInfo versionRequest.FilePath))
             |> Result.bind (getDaemon agent)
             |> Result.map (fun client ->
                 client
@@ -259,4 +259,4 @@ type LSPFSharpLintService() =
                         { Code = int FSharpLintResponseCode.OkCurrentDaemonVersion
                           Result = Content task.Result
                           FilePath = versionRequest.FilePath }))
-            |> mapResultToResponse versionRequest.FilePath
+            |> mapResultToResponse (FileInfo versionRequest.FilePath)

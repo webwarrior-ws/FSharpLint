@@ -9,10 +9,12 @@ open LSPFSharpLintServiceTypes
 
 let (</>) path1 path2 = Path.Combine(path1, path2)
 
-let basePath = TestContext.CurrentContext.TestDirectory </> ".." </> ".." </> ".." </> ".." </> ".."
-let fsharpLintConsoleDll = basePath </> "src" </> "FSharpLint.Console" </> "bin" </> "Release" </> "net9.0" </> "dotnet-fsharplint.dll"
+let basePath = TestContext.CurrentContext.TestDirectory </> ".." </> ".." </> ".." </> ".." </> ".." |> DirectoryInfo
+let fsharpLintConsoleDll = 
+    basePath.FullName </> "src" </> "FSharpLint.Console" </> "bin" </> "Release" </> "net9.0" </> "dotnet-fsharplint.dll"
+    |> FileInfo
 let fsharpConsoleOutputDir = 
-    Folder.FromFile fsharpLintConsoleDll
+    Folder.FromFile fsharpLintConsoleDll.FullName
     |> Option.defaultWith (fun () -> failwith $"Console project output dir (dir of file {fsharpLintConsoleDll}) does not exist.")
 
 [<RequireQualifiedAccess>]
@@ -44,7 +46,7 @@ let runVersionCall (file: File) (service: IFSharpLintService) =
     async {
         let request =
             {
-                FilePath = file |> File.Unwrap
+                FilePath = File.Unwrap file
             }
         let! version = service.VersionAsync(request) |> Async.AwaitTask
         return version
@@ -52,7 +54,7 @@ let runVersionCall (file: File) (service: IFSharpLintService) =
     |> Async.RunSynchronously
 
 let getTestHintsFile () =
-    let filePath = basePath </> "tests" </> "FSharpLint.FunctionalTest.TestedProject" </> "FSharpLint.FunctionalTest.TestedProject.NetCore" </> "TestHints.fs"
+    let filePath = basePath.FullName </> "tests" </> "FSharpLint.FunctionalTest.TestedProject" </> "FSharpLint.FunctionalTest.TestedProject.NetCore" </> "TestHints.fs"
     filePath
     |> File.From
     |> Option.defaultWith (fun () -> failwith $"File {filePath} does not exist.")
