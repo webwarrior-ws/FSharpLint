@@ -169,21 +169,23 @@ let private getDaemon (agent: MailboxProcessor<Msg>) (folder: Folder) : Result<J
     | Ok daemon -> Ok daemon
     | Error gde -> Error(FSharpLintServiceError.DaemonNotFound gde)
 
-let private fileNotFoundResponse (file: FileInfo) : Task<FSharpLintResponse> =
-    { Code = int FSharpLintResponseCode.ErrFileNotFound
-      FilePath = file.FullName
-      Result = Content $"File \"%s{file.FullName}\" does not exist."
+let private fileNotFoundResponse (file: FileInfo) : Async<FSharpLintResponse> = async {
+        return {
+            Code = int FSharpLintResponseCode.ErrFileNotFound
+            FilePath = file.FullName
+            Result = Content $"File \"%s{file.FullName}\" does not exist."
+        }
     }
-    |> Task.FromResult
 
-let private fileNotAbsoluteResponse (file: FileInfo) : Task<FSharpLintResponse> =
-    { Code = int FSharpLintResponseCode.ErrFilePathIsNotAbsolute
-      FilePath = file.FullName
-      Result = Content $"\"%s{file.FullName}\" is not an absolute file path. Relative paths are not supported."
+let private fileNotAbsoluteResponse (file: FileInfo) : Async<FSharpLintResponse> = async {
+        return {
+            Code = int FSharpLintResponseCode.ErrFilePathIsNotAbsolute
+            FilePath = file.FullName
+            Result = Content $"\"%s{file.FullName}\" is not an absolute file path. Relative paths are not supported."
+        }
     }
-    |> Task.FromResult
 
-let private daemonNotFoundResponse (file: FileInfo) (error: GetDaemonError) : Task<FSharpLintResponse> =
+let private daemonNotFoundResponse (file: FileInfo) (error: GetDaemonError) : Async<FSharpLintResponse> =
     let content, code =
         match error with
         | GetDaemonError.DotNetToolListError(DotNetToolListError.ProcessStartError(ProcessStartError.ExecutableFileNotFound(executableFile,
@@ -217,22 +219,25 @@ let private daemonNotFoundResponse (file: FileInfo) (error: GetDaemonError) : Ta
             ($"FSharpLint.Client found a compatible version `%s{version}` but no daemon could be launched.",
             FSharpLintResponseCode.ErrDaemonCreationFailed)
 
-    { Code = int code
-      FilePath = file.FullName
-      Result = Content content
+    async {
+        return {
+            Code = int code
+            FilePath = file.FullName
+            Result = Content content
+        }
     }
-    |> Task.FromResult
 
-let private cancellationWasRequestedResponse (file: FileInfo) : Task<FSharpLintResponse> =
-    { Code = int FSharpLintResponseCode.ErrCancellationWasRequested
-      FilePath = file.FullName
-      Result = Content "FSharpLintService is being or has been disposed."
+let private cancellationWasRequestedResponse (file: FileInfo) : Async<FSharpLintResponse> = async {
+        return {
+            Code = int FSharpLintResponseCode.ErrCancellationWasRequested
+            FilePath = file.FullName
+            Result = Content "FSharpLintService is being or has been disposed."
+        }
     }
-    |> Task.FromResult
 
 let mapResultToResponse (file: FileInfo) (result: Result<Task<FSharpLintResponse>, FSharpLintServiceError>) =
     match result with
-    | Ok version -> version
+    | Ok version -> Async.AwaitTask version
     | Error FSharpLintServiceError.FileDoesNotExist -> fileNotFoundResponse file
     | Error FSharpLintServiceError.FilePathIsNotAbsolute -> fileNotAbsoluteResponse file
     | Error(FSharpLintServiceError.DaemonNotFound err) -> daemonNotFoundResponse file err
@@ -248,7 +253,7 @@ type LSPFSharpLintService() =
                 agent.PostAndReply Reset |> ignore<_>
                 cts.Cancel()
 
-        member _.VersionAsync(versionRequest: VersionRequest, ?cancellationToken: CancellationToken) : Task<FSharpLintResponse> =
+        member _.VersionAsync(versionRequest: VersionRequest, ?cancellationToken: CancellationToken) : Async<FSharpLintResponse> =
             isCancellationRequested cts.IsCancellationRequested
             |> Result.bind (getFolderFor (FileInfo versionRequest.FilePath))
             |> Result.bind (getDaemon agent)

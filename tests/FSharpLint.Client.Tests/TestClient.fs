@@ -48,7 +48,7 @@ let runVersionCall (file: File) (service: IFSharpLintService) =
             {
                 FilePath = File.Unwrap file
             }
-        let! version = service.VersionAsync(request) |> Async.AwaitTask
+        let! version = service.VersionAsync(request)
         return version
     }
     |> Async.RunSynchronously

@@ -27,5 +27,5 @@ type IFSharpLintService =
     interface
         inherit IDisposable
 
-        abstract member VersionAsync: VersionRequest * ?cancellationToken: CancellationToken -> Task<FSharpLintResponse>
+        abstract member VersionAsync: VersionRequest * ?cancellationToken: CancellationToken -> Async<FSharpLintResponse>
     end

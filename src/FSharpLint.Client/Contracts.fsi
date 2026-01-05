@@ -25,4 +25,4 @@ type FSharpLintResponse = {
 type IFSharpLintService =
     inherit System.IDisposable
 
-    abstract VersionAsync: VersionRequest * ?cancellationToken: CancellationToken -> Task<FSharpLintResponse>
+    abstract VersionAsync: VersionRequest * ?cancellationToken: CancellationToken -> Async<FSharpLintResponse>
