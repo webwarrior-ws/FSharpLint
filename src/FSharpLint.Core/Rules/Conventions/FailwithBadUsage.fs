@@ -22,13 +22,7 @@ type private BadUsageType =
     | NullMessage
 
 let private runner (args: AstNodeRuleParams) =
-    let generateError
-        failwithKeyword
-        failwithErrorMessage
-        range
-        (badUsageType: BadUsageType)
-        (exceptionParam: Option<string>)
-        =
+    let generateError failwithKeyword failwithErrorMessage range (badUsageType: BadUsageType) (exceptionParam: Option<string>) =
         let suggestedFix =
             match exceptionParam with
             | Some param ->
