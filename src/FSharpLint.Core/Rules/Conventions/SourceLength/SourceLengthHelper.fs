@@ -22,7 +22,7 @@ let private singleLineCommentRegex = Regex(@"^[\s]*\/\/.*$", RegexOptions.Multil
 let private multilineCommentMarkerRegex = Regex @"(\(\*[^\)])|([^\(]\*\))"
 let private multilineCommentMarkerRegexCaptureGroupLength = 3
 
-let checkSourceLengthRule (config:Config) range fileContents errorName =
+let checkSourceLengthRule (config:Config) range fileContents errorName (skipRanges: array<Range>) =
     let error name lineCount actual =
         let errorFormatString = Resources.GetString("RulesSourceLengthError")
         String.Format(errorFormatString, name, lineCount, actual)
@@ -71,7 +71,13 @@ let checkSourceLengthRule (config:Config) range fileContents errorName =
             |> Seq.filter (fun line -> line.Trim().Length = 0)
             |> Seq.length
 
-        let skipResult = sourceCodeLines.Length - commentLinesCount - blankLinesCount
+        let skippedLinesCount =
+            skipRanges
+            |> Seq.collect (fun range -> seq { range.StartLine .. range.EndLine })
+            |> Seq.distinct
+            |> Seq.length
+
+        let skipResult = sourceCodeLines.Length - commentLinesCount - blankLinesCount - skippedLinesCount
         if skipResult > config.MaxLines then
             Array.singleton
                 {
