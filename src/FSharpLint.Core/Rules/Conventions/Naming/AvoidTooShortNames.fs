@@ -28,7 +28,7 @@ let private checkIdentifier (identifier:Ident) (idText:string) =
     else
         Array.empty
 
-let private getParameterWithBelowMinimumLength (pats: SynPat list): (Ident * string * (unit -> bool) option) array =
+let private getParameterWithBelowMinimumLength (patterns: SynPat list): (Ident * string * (unit -> bool) option) array =
     let rec loop patArray acc =
         match patArray with
         | SynPat.Named(SynIdent(ident, _), _, _, _)::tail ->
@@ -50,7 +50,7 @@ let private getParameterWithBelowMinimumLength (pats: SynPat list): (Ident * str
             | _ ->
                 loop tail acc
         | _ -> acc
-    loop pats Array.empty
+    loop patterns Array.empty
 
 let private getIdentifiers (args:AstNodeRuleParams) =
     match args.AstNode with

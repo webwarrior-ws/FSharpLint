@@ -14,13 +14,13 @@ open FSharpLint.Framework.Rules
 open FSharpLint.Rules.HintMatcher
 
 let private generateHintConfig hints =
-    let parseHints hints =
-        let parseHint hint =
-            match CharParsers.run phint hint with
+    let parseHints hintStrings =
+        let parseHint hintString =
+            match CharParsers.run phint hintString with
             | FParsec.CharParsers.Success(hint, _, _) -> hint
             | FParsec.CharParsers.Failure(error, _, _) -> failwithf "Invalid hint %s" error
 
-        List.map parseHint hints
+        List.map parseHint hintStrings
 
     parseHints hints
     |> MergeSyntaxTrees.mergeHints
@@ -39,17 +39,17 @@ type TestHintMatcherBase () =
 
         let parseResults =
             match fileName with
-            | Some fileName ->
-                ParseFile.parseSourceFile fileName input checker
+            | Some actualFileName ->
+                ParseFile.parseSourceFile actualFileName input checker
             | None ->
                 ParseFile.parseSource input checker
 
-        let rule =
+        let astNodeRule =
             match HintMatcher.rule { HintTrie = hintTrie } with
-            | Rules.AstNodeRule rule -> rule
+            | Rules.AstNodeRule nodeRule -> nodeRule
             | _ -> failwith "TestHintMatcherBase only accepts AstNodeRules"
 
-        let globalConfig = Option.defaultValue GlobalRuleConfig.Default globalConfig
+        let resolvedGlobalConfig = Option.defaultValue GlobalRuleConfig.Default globalConfig
 
         match Async.RunSynchronously parseResults with
         | ParseFileResult.Success parseInfo ->
@@ -61,8 +61,8 @@ type TestHintMatcherBase () =
             let suggestions =
                 runAstNodeRules
                     {
-                        Rules = Array.singleton rule
-                        GlobalConfig = globalConfig
+                        Rules = Array.singleton astNodeRule
+                        GlobalConfig = resolvedGlobalConfig
                         TypeCheckResults = checkResult
                         ProjectCheckResults = None
                         FilePath = (Option.defaultValue String.Empty fileName)

@@ -16,17 +16,17 @@ type TestAstNodeRuleBase (rule:Rule) =
 
         let parseResults =
             match fileName with
-            | Some fileName ->
-                ParseFile.parseSourceFile fileName input checker
+            | Some actualFileName ->
+                ParseFile.parseSourceFile actualFileName input checker
             | None ->
                 ParseFile.parseSource input checker
 
-        let rule =
+        let astNodeRule =
             match rule with
-            | AstNodeRule rule -> rule
+            | AstNodeRule nodeRule -> nodeRule
             | _ -> failwith "TestAstNodeRuleBase only accepts AstNodeRules"
 
-        let globalConfig = Option.defaultValue GlobalRuleConfig.Default globalConfig
+        let resolvedGlobalConfig = Option.defaultValue GlobalRuleConfig.Default globalConfig
 
         match Async.RunSynchronously parseResults with
         | ParseFileResult.Success parseInfo ->
@@ -39,8 +39,8 @@ type TestAstNodeRuleBase (rule:Rule) =
             let suggestions =
                 runAstNodeRules
                     {
-                        Rules = Array.singleton rule
-                        GlobalConfig = globalConfig
+                        Rules = Array.singleton astNodeRule
+                        GlobalConfig = resolvedGlobalConfig
                         TypeCheckResults = checkResult
                         ProjectCheckResults = None
                         FilePath = (Option.defaultValue String.Empty fileName)
@@ -50,7 +50,7 @@ type TestAstNodeRuleBase (rule:Rule) =
                     }
                 |> fst
 
-            rule.RuleConfig.Cleanup()
+            astNodeRule.RuleConfig.Cleanup()
 
             Array.iter this.PostSuggestion suggestions
         | _ ->

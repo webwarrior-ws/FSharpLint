@@ -62,21 +62,20 @@ let isSuppressed (rule:String) (line:int) (lineSuppressions:LineSuppression list
     if List.isEmpty lineSuppressions then
         false
     else
-        let rule = rule.ToLowerInvariant()
-            
+        let ruleLowercase = rule.ToLowerInvariant()
         
         let fold (disabledRules:Set<String>) (lineSuppression:LineSuppression) = 
-            let innerFold (disabledRules:Set<String>) suppression = 
+            let innerFold (currentDisabledRules:Set<String>) suppression = 
                 match suppression with
                 | Enable(rules) ->
-                    Set.difference disabledRules rules
+                    Set.difference currentDisabledRules rules
                 | Disable(rules) ->
-                    Set.union disabledRules rules
+                    Set.union currentDisabledRules rules
                 | DisableLine(rules) ->
                     if line = lineSuppression.Line then
-                        Set.union disabledRules rules
+                        Set.union currentDisabledRules rules
                     else
-                        disabledRules
+                        currentDisabledRules
             List.fold innerFold disabledRules lineSuppression.Suppressions
 
         let disabledRules =
@@ -84,4 +83,4 @@ let isSuppressed (rule:String) (line:int) (lineSuppressions:LineSuppression list
             |> List.takeWhile (fun lineSupression -> lineSupression.Line <= line)
             |> List.fold fold Set.empty
 
-        disabledRules.Contains(rule)
+        disabledRules.Contains(ruleLowercase)

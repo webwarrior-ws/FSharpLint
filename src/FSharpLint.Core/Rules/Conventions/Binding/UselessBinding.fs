@@ -9,11 +9,11 @@ open FSharp.Compiler.CodeAnalysis
 open FSharpLint.Framework.Ast
 open FSharpLint.Framework.Rules
 
-let private checkForUselessBinding (checkInfo:FSharpCheckFileResults option) pattern expr range maybeSuggestedFix =
+let private checkForUselessBinding (checkInfo:FSharpCheckFileResults option) pattern expression range maybeSuggestedFix =
     match checkInfo with
-    | Some checkInfo ->
+    | Some checkFileResults ->
         let rec findBindingIdentifier = function
-            | SynPat.Paren(pattern, _) -> findBindingIdentifier pattern
+            | SynPat.Paren(pat, _) -> findBindingIdentifier pat
             | SynPat.Named(SynIdent(ident, _), _, _, _) -> Some(ident)
             | _ -> None
         
@@ -23,11 +23,11 @@ let private checkForUselessBinding (checkInfo:FSharpCheckFileResults option) pat
             | _ -> true
 
         let checkNotMutable (ident:Ident) = fun () ->
-            let symbol =
-                checkInfo.GetSymbolUseAtLocation(
+            let maybeSymbol =
+                checkFileResults.GetSymbolUseAtLocation(
                     ident.idRange.StartLine, ident.idRange.EndColumn, String.Empty, [ident.idText])
 
-            match symbol with
+            match maybeSymbol with
             | Some(symbol) -> isNotMutable symbol
             | None -> false
 
@@ -38,7 +38,7 @@ let private checkForUselessBinding (checkInfo:FSharpCheckFileResults option) pat
             | _ -> None
 
         findBindingIdentifier pattern
-        |> Option.bind (fun bindingIdent -> matchingIdentifier bindingIdent expr)
+        |> Option.bind (fun bindingIdent -> matchingIdentifier bindingIdent expression)
         |> Option.map (fun ident ->
             { Range = range
               Message = Resources.GetString("RulesUselessBindingError")

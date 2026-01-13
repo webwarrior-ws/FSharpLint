@@ -40,23 +40,23 @@ let private areChildrenNested = function
 
 let private getRange node =
     match node with 
-    | AstNode.Expression(node) -> Some node.Range
-    | AstNode.Binding(node) -> Some node.RangeOfBindingWithRhs
+    | AstNode.Expression(expr) -> Some expr.Range
+    | AstNode.Binding(binding) -> Some binding.RangeOfBindingWithRhs
     | _ -> None
 
 let private distanceToCommonParent (syntaxArray:AbstractSyntaxArray.Node []) iIndex jIndex =
-    let mutable iIndex = iIndex
-    let mutable jIndex = jIndex
+    let mutable iIndexCurr = iIndex
+    let mutable jIndexCurr = jIndex
     let mutable distance = 0
 
-    while iIndex <> jIndex do
-        if iIndex > jIndex then
-            iIndex <- syntaxArray.[iIndex].ParentIndex
+    while iIndexCurr <> jIndexCurr do
+        if iIndexCurr > jIndexCurr then
+            iIndexCurr <- syntaxArray.[iIndexCurr].ParentIndex
 
-            if iIndex <> jIndex && areChildrenNested syntaxArray.[iIndex].Actual then
+            if iIndexCurr <> jIndexCurr && areChildrenNested syntaxArray.[iIndexCurr].Actual then
                 distance <- distance + 1
         else
-            jIndex <- syntaxArray.[jIndex].ParentIndex
+            jIndexCurr <- syntaxArray.[jIndexCurr].ParentIndex
 
     distance
 

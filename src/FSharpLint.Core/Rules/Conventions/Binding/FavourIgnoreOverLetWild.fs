@@ -9,7 +9,7 @@ open FSharpLint.Framework.Rules
 
 let private checkForBindingToAWildcard pattern range fileContent (expr: SynExpr) letBindingRange =
     let rec findWildAndIgnoreParens = function
-        | SynPat.Paren(pattern, _) -> findWildAndIgnoreParens pattern
+        | SynPat.Paren(pat, _) -> findWildAndIgnoreParens pat
         | SynPat.Wild(_) -> true
         | _ -> false
 

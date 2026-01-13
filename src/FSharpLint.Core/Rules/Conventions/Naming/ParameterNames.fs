@@ -21,12 +21,10 @@ let private getValueOrFunctionIdents typeChecker _accessibility pattern =
     match pattern with
     | SynPat.Named(SynIdent(ident, _), _, _, _)
     | SynPat.OptionalVal(ident, _) when not (isActivePattern ident) ->
-        let checkNotUnionCase = checkNotUnionCase ident
-        Array.singleton (ident, ident.idText, Some checkNotUnionCase)
+        Array.singleton (ident, ident.idText, Some (checkNotUnionCase ident))
     | SynPat.LongIdent(SynLongIdent([ident], _, _), _, _, SynArgPats.Pats([]), _, _) when not (isActivePattern ident) ->
         // Handle constructor parameters that are represented as LongIdent (e.g., PascalCase parameters)
-        let checkNotUnionCase = checkNotUnionCase ident
-        Array.singleton (ident, ident.idText, Some checkNotUnionCase)
+        Array.singleton (ident, ident.idText, Some (checkNotUnionCase ident))
     | _ -> Array.empty
 
 let private getIdentifiers (args:AstNodeRuleParams) =

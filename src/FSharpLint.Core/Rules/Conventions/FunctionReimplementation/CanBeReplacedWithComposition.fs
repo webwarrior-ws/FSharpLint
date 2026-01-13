@@ -12,14 +12,14 @@ let private validateLambdaCannotBeReplacedWithComposition fileContents _ lambda 
     let tryReplaceWithFunctionComposition expression =
         let getLastElement = List.rev >> List.tryHead
 
-        let rec lambdaArgumentIsLastApplicationInFunctionCalls expression (lambdaArgument:Ident) (calledFunctionIdents: List<string>) =
+        let rec lambdaArgumentIsLastApplicationInFunctionCalls expr (lambdaArgument:Ident) (calledFunctionIdents: List<string>) =
             let rec appliedValuesAreConstants appliedValues =
                 match appliedValues with
                 | (SynExpr.Const(_)| SynExpr.Null(_))::rest -> appliedValuesAreConstants rest
                 | [SynExpr.App(_) | SynExpr.Ident(_)] -> true
                 | _ -> false
 
-            match AstNode.Expression expression with
+            match AstNode.Expression expr with
             | FuncApp(exprs, _) ->
                 match List.map removeParens exprs with
                 | (ExpressionUtilities.Identifier(idents, _))::appliedValues

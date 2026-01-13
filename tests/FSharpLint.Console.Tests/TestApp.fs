@@ -140,8 +140,7 @@ type TestFileTypeInference() =
     [<TestCase("test?.fs", FileType.Wildcard, TestName = "inferFileType must recognize wildcard patterns with ? as Wildcard type")>]
     member _.``File type inference test cases``(filename: string, expectedType: int) =
         let result = FSharpLint.Console.Program.inferFileType filename
-        let expectedType = enum<FileType>(expectedType)
-        Assert.AreEqual(expectedType, result)
+        Assert.AreEqual(enum<FileType> expectedType, result)
 
 [<TestFixture>]
 type TestWildcardExpansion() =

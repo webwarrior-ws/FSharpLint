@@ -22,8 +22,8 @@ let runner (args: AstNodeRuleParams) =
             }
     
     let rec checkExpr (expr: SynExpr) (outerArgExpr: SynExpr) (range: FSharp.Compiler.Text.range) (parentList: AstNode list): WarningDetails array =
-        let checkParentPiped (expr: AstNode) =
-            match expr with
+        let checkParentPiped (exprNode: AstNode) =
+            match exprNode with
             | AstNode.Expression(SynExpr.App(_exprAtomicFlag, _isInfix, funcExpr, _argExpr, _range)) ->
                 checkExpr funcExpr outerArgExpr range List.Empty |> Seq.isEmpty
             | _ -> false

@@ -107,16 +107,15 @@ module IgnoreFiles =
             match remainingPath with
             | [_] when isDirectory -> false
             | currentSegment::remaining ->
-                let currentlyMatchingGlobs = globs::currentlyMatchingGlobs
+                let updatedCurrentlyMatchingGlobs = 
+                    getRemainingGlobSeqForMatches currentSegment (globs::currentlyMatchingGlobs)
 
-                let currentlyMatchingGlobs = getRemainingGlobSeqForMatches currentSegment currentlyMatchingGlobs
-
-                let aGlobWasCompletelyMatched = List.exists List.isEmpty currentlyMatchingGlobs
+                let aGlobWasCompletelyMatched = List.exists List.isEmpty updatedCurrentlyMatchingGlobs
 
                 let matched = aGlobWasCompletelyMatched && (isDirectory || (not isDirectory && List.isEmpty remaining))
 
                 if matched then true
-                else doesGlobSeqMatchPathSeq remaining currentlyMatchingGlobs
+                else doesGlobSeqMatchPathSeq remaining updatedCurrentlyMatchingGlobs
             | [] -> false
 
         doesGlobSeqMatchPathSeq path List.Empty
@@ -689,7 +688,7 @@ let defaultConfiguration =
     use stream = assembly.GetManifestResourceStream(resourceName)
     match stream with
     | null -> failwithf "Resource '%s' not found in assembly '%s'" resourceName (assembly.FullName)
-    | stream ->
+    | _ ->
         use reader = new System.IO.StreamReader(stream)
 
         reader.ReadToEnd()
@@ -706,18 +705,18 @@ type LoadedRules =
       LineRules:LineRules
       DeprecatedRules:Rule [] }
 
-let getGlobalConfig (globalConfig:GlobalConfig option) =
-    globalConfig
+let getGlobalConfig (maybeGlobalConfig: GlobalConfig option) =
+    maybeGlobalConfig
     |> Option.map (fun globalConfig -> {
         Rules.GlobalRuleConfig.numIndentationSpaces = globalConfig.numIndentationSpaces |> Option.defaultValue Rules.GlobalRuleConfig.Default.numIndentationSpaces
     }) |> Option.defaultValue Rules.GlobalRuleConfig.Default
 
 let private parseHints (hints:string []) =
-    let parseHint hint =
-        match FParsec.CharParsers.run HintParser.phint hint with
+    let parseHint hintString =
+        match FParsec.CharParsers.run HintParser.phint hintString with
         | FParsec.CharParsers.Success(hint, _, _) -> hint
         | FParsec.CharParsers.Failure(error, _, _) ->
-            raise <| ConfigurationException $"Failed to parse hint: {hint}{Environment.NewLine}{error}"
+            raise <| ConfigurationException $"Failed to parse hint: {hintString}{Environment.NewLine}{error}"
 
     hints
     |> Array.filter (System.String.IsNullOrWhiteSpace >> not)
@@ -764,12 +763,12 @@ let flattenConfig (config:Configuration) =
         Array.concat
             [|
                 // Deprecated grouped configs. TODO: remove in next major release
-                config.formatting |> Option.map (fun config -> config.Flatten()) |> Option.toArray |> Array.concat
-                config.conventions |> Option.map (fun config -> config.Flatten()) |> Option.toArray |> Array.concat
-                config.typography |> Option.map (fun config -> config.Flatten()) |> Option.toArray |> Array.concat
+                config.formatting |> Option.map (fun formattingConfig -> formattingConfig.Flatten()) |> Option.toArray |> Array.concat
+                config.conventions |> Option.map (fun conventionsConfig -> conventionsConfig.Flatten()) |> Option.toArray |> Array.concat
+                config.typography |> Option.map (fun typographyConfig -> typographyConfig.Flatten()) |> Option.toArray |> Array.concat
                 // </Deprecated>
 
-                config.Hints |> Option.map (fun config -> HintMatcher.rule { HintMatcher.Config.HintTrie = parseHints (getOrEmptyList config.add) }) |> Option.toArray
+                config.Hints |> Option.map (fun hintsConfig -> HintMatcher.rule { HintMatcher.Config.HintTrie = parseHints (getOrEmptyList hintsConfig.add) }) |> Option.toArray
             |]
 
     let allRules =

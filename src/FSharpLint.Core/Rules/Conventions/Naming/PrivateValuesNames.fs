@@ -19,9 +19,8 @@ let private getValueOrFunctionIdents typeChecker accessibility pattern =
 
         match List.tryLast longIdent.LongIdent with
         | Some ident when not (isActivePattern ident) && singleIdentifier ->
-            let checkNotUnionCase = checkNotUnionCase ident
             if accessibility = AccessControlLevel.Private then
-                Array.singleton (ident, ident.idText, Some checkNotUnionCase)
+                Array.singleton (ident, ident.idText, Some (checkNotUnionCase ident))
             else
                 Array.empty
         | None | Some _ -> Array.empty

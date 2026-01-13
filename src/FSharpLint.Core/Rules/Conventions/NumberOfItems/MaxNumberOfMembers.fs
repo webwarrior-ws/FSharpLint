@@ -21,11 +21,11 @@ let private getMembers (members:SynMemberDefn list) =
 
     List.filter isPublicMember members
 
-let private validateType (maxMembers:int) members typeRepresentation =
+let private validateType (maxMembers:int) typeMembers typeRepresentation =
     let members =
         match typeRepresentation with
-        | SynTypeDefnRepr.Simple(_) | SynTypeDefnRepr.Exception(_) -> members
-        | SynTypeDefnRepr.ObjectModel(_, members, _) -> getMembers members
+        | SynTypeDefnRepr.Simple(_) | SynTypeDefnRepr.Exception(_) -> typeMembers
+        | SynTypeDefnRepr.ObjectModel(_, classMembers, _) -> getMembers classMembers
 
     if List.length members > maxMembers then
         let errorFormatString = Resources.GetString("RulesNumberOfItemsClassMembersError")

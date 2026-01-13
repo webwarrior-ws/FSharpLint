@@ -60,8 +60,8 @@ let private checkIdentifier (args: AstNodeRuleParams) (identifier: Ident) : arra
                         rangeIncludedsDefinitionsBeforeCurrent ident.idRange
                     | _ -> false
 
-        let processArgs (args: SynSimplePats) =
-            args
+        let processArgs (arguments: SynSimplePats) =
+            arguments
             |> extractIdentifiersFromSimplePats
             |> List.exists (fun ident -> rangeIncludedsDefinitionsBeforeCurrent ident.idRange)
 
@@ -71,8 +71,8 @@ let private checkIdentifier (args: AstNodeRuleParams) (identifier: Ident) : arra
                 bindings |> List.exists processBinding
             | SynExpr.Sequential(_, _, expr1, expr2, _, _) ->
                 processExpression expr1 || processExpression expr2
-            | SynExpr.Lambda(_, _, args, body, _, _, _) ->
-                processExpression body || processArgs args
+            | SynExpr.Lambda(_, _, arguments, body, _, _, _) ->
+                processExpression body || processArgs arguments
             | _ -> false
 
         let rec processPattern (definitions: array<FSharpSymbolUse>) (pattern: SynPat) =
@@ -95,9 +95,7 @@ let private checkIdentifier (args: AstNodeRuleParams) (identifier: Ident) : arra
 
         let processModuleDeclaration (moduleDecl: SynModuleDecl) =
             match moduleDecl with
-            | SynModuleDecl.Let(_, bindings, _) ->
-                bindings 
-                |> List.exists processBinding
+            | SynModuleDecl.Let(_, bindings, _) -> bindings |> List.exists processBinding
             | _ -> false
 
         let processAstNode (node: AstNode) =

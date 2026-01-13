@@ -200,11 +200,11 @@ let rec private tryFindTypedExpression (range: Range) (expressions: List<FSharpE
         let interfaceImlps = 
             interfaceImplementations
             |> List.collect (fun (_, imlps) -> imlps)
-        let expressions =
+        let exprs =
             List.append overrides interfaceImlps
             |> Seq.cast<FSharpExpr>
             |> Seq.toList
-        tryFindTypedExpression range (baseCallExpr :: expressions @ rest)
+        tryFindTypedExpression range (baseCallExpr :: exprs @ rest)
     | FSharpExprPatterns.TraitCall(_sourceTypes, _traitName, _typeArgs, _typeInstantiation, _argTypes, argExprs) :: rest -> 
         tryFindTypedExpression range (argExprs @ rest)
     | FSharpExprPatterns.ValueSet(_valToSet, valueExpr) :: rest -> 

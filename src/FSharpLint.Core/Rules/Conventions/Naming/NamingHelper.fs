@@ -253,7 +253,7 @@ type AccessControlLevel =
     | Private
     | Internal
 
-let getAccessControlLevel (syntaxArray:AbstractSyntaxArray.Node []) index =
+let getAccessControlLevel (syntaxArray:AbstractSyntaxArray.Node []) nodeIndex =
     let resolveAccessControlLevel = function
         | Some(SynAccess.Public _) | None -> AccessControlLevel.Public
         | Some(SynAccess.Private _) -> AccessControlLevel.Private
@@ -300,7 +300,7 @@ let getAccessControlLevel (syntaxArray:AbstractSyntaxArray.Node []) index =
             | LambdaBody(_)
             | Expression(_) -> getAccessibility state true node.ParentIndex
 
-    getAccessibility AccessControlLevel.Public false index
+    getAccessibility AccessControlLevel.Public false nodeIndex
 
 
 /// Is an attribute with a given name?
@@ -324,10 +324,10 @@ let isExtern = isAttribute "DllImport"
 let isMeasureType = isAttribute "Measure"
 
 let isNotUnionCase (checkFile:FSharpCheckFileResults) (ident:Ident) =
-    let symbol = checkFile.GetSymbolUseAtLocation(
+    let maybeSymbol = checkFile.GetSymbolUseAtLocation(
                     ident.idRange.StartLine, ident.idRange.EndColumn, String.Empty, [ident.idText])
 
-    match symbol with
+    match maybeSymbol with
     | Some(symbol) when (symbol.Symbol :? FSharpUnionCase) -> false
     | Some(_) | None -> true
 
