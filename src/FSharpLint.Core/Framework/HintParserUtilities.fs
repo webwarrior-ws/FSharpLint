@@ -292,15 +292,15 @@ module MergeSyntaxTrees =
                 MatchedHint = matchedHints
             }
 
-        let map = Dictionary<_, _>()
-
-        transposed
-        |> List.choose (function
-            | HintNode(expr, depth, rest) -> Some(getKey expr, expr, depth, rest)
-            | EndOfHint(_) -> None)
-        |> List.filter (isAnyMatch >> not)
-        |> Seq.groupBy (fun (key, expr, _, _) -> Utilities.hash2 key (getHashCode expr))
-        |> Seq.iter (fun (hashcode, items) -> map.Add(hashcode, mergeHintsInner (getHints items)))
+        let map = 
+            transposed
+            |> List.choose (function
+                | HintNode(expr, depth, rest) -> Some(getKey expr, expr, depth, rest)
+                | EndOfHint(_) -> None)
+            |> List.filter (isAnyMatch >> not)
+            |> Seq.groupBy (fun (key, expr, _, _) -> Utilities.hash2 key (getHashCode expr))
+            |> Seq.map (fun (hashcode, items) -> KeyValuePair(hashcode, mergeHintsInner (getHints items)))
+            |> Dictionary
 
         let anyMatches =
             transposed
