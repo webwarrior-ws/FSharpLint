@@ -275,24 +275,29 @@ module MergeSyntaxTrees =
     let getHints items =
         items |> Seq.map (fun (_, _, _, hint) -> hint) |> Seq.toList
 
-    // either process a transposed list, or complete a pending merge
-    type private WorkItem =
-        | Process of transposed: TransposedNode list * continuation: (Edges -> unit)
-        | Complete
+    // Represents pending work and how to combine results
+    type private Frame =
+        | Compute of transposed: TransposedNode list
+        | BuildMerge of matchedHints: Hint list * hashcode: int option * expr: HintNode option
+        | Finalize of 
+            map: Dictionary<int, Node> * 
+            lookupCount: int * 
+            anyMatchExprs: HintNode list
 
-    let private getEdges transposed =
-        let workStack = Stack<WorkItem>()
+    let private getEdges initialTransposed =
+
+        let resultStack = Stack<_>()
+        let mergeStack = Stack<_>()
+        let workStack = Stack<Frame>()
     
-        // Initial work item
-        let mutable finalResult = Unchecked.defaultof<Edges>
-        workStack.Push(Process(transposed, fun r -> finalResult <- r))
+        workStack.Push(Compute initialTransposed)
     
         while workStack.Count > 0 do
             match workStack.Pop() with
-            | Process(currentTransposed, continuation) ->
+            | Compute currentTransposed ->
                 let map = Dictionary<_, _>()
             
-                let nonAnyMatchItems =
+                let lookupItems =
                     currentTransposed
                     |> List.choose (function
                         | HintNode(expr, depth, rest) -> Some(getKey expr, expr, depth, rest)
@@ -309,73 +314,77 @@ module MergeSyntaxTrees =
                             | (SyntaxHintNode.Wildcard as key), HintExpr(Expression.Wildcard)
                             | (SyntaxHintNode.Wildcard as key), HintPat(Pattern.Wildcard)
                             | (SyntaxHintNode.Variable as key), HintExpr(Expression.Variable(_))
-                            | (SyntaxHintNode.Variable as key), HintPat(Pattern.Variable(_)) -> Some(key, expr, depth, rest)
+                            | (SyntaxHintNode.Variable as key), HintPat(Pattern.Variable(_)) -> 
+                                Some(key, expr, depth, rest)
                             | _ -> None
                         | EndOfHint(_) -> None)
                     |> Seq.groupBy (fun (_, expr, _, _) -> expr)
                     |> Seq.toList
             
-                let totalItems = nonAnyMatchItems.Length + anyMatchItems.Length
+                // Push finalization frame
+                let anyExprs = anyMatchItems |> List.map fst
+                workStack.Push(Finalize(map, lookupItems.Length, anyExprs))
             
-                if totalItems = 0 then
-                    continuation { Lookup = map; AnyMatch = [] }
-                else
-                    let collectedNonAny = Array.zeroCreate<struct(int * Node)> nonAnyMatchItems.Length
-                    let collectedAny = Array.zeroCreate<struct(HintNode * Node)> anyMatchItems.Length
-                    let mutable remaining = totalItems
-                
-                    let checkComplete () =
-                        remaining <- remaining - 1
-                        if remaining = 0 then
-                            // All recursive calls complete, build final result
-                            for struct(hashcode, mergeResult) in collectedNonAny do
-                                map.Add(hashcode, mergeResult)
-                        
-                            let anyMatches =
-                                collectedAny
-                                |> Array.choose (fun struct(expr, mergeResult) ->
-                                    match expr with
-                                    | HintPat(Pattern.Wildcard)
-                                    | HintExpr(Expression.Wildcard) -> Some(None, mergeResult)
-                                    | HintPat(Pattern.Variable(var))
-                                    | HintExpr(Expression.Variable(var)) -> Some(Some(var), mergeResult)
-                                    | _ -> None)
-                                |> Array.toList
-                        
-                            continuation { Lookup = map; AnyMatch = anyMatches }
-                
-                    // Queue work for non-any-match items
-                    nonAnyMatchItems |> List.iteri (fun i (hashcode, items) ->
-                        let hints = getHints items
-                        let innerTransposed = transposeHead hints
-                        let matchedHints =
-                            innerTransposed
-                            |> Seq.choose (function
-                                | HintNode(_) -> None
-                                | EndOfHint(hint) -> Some(hint))
-                            |> Seq.toList
-                    
-                        workStack.Push(Process(innerTransposed, fun edges ->
-                            collectedNonAny.[i] <- struct(hashcode, { Edges = edges; MatchedHint = matchedHints })
-                            checkComplete())))
-                
-                    // Queue work for any-match items
-                    anyMatchItems |> List.iteri (fun i (expr, items) ->
-                        let hints = getHints items
-                        let innerTransposed = transposeHead hints
-                        let matchedHints =
-                            innerTransposed
-                            |> Seq.choose (function
-                                | HintNode(_) -> None
-                                | EndOfHint(hint) -> Some(hint))
-                            |> Seq.toList
-                    
-                        workStack.Push(Process(innerTransposed, fun edges ->
-                            collectedAny.[i] <- struct(expr, { Edges = edges; MatchedHint = matchedHints })
-                            checkComplete())))
-            | Complete -> ()
+                // Push work for any-match items (in reverse so they're processed in order)
+                for (expr, items) in List.rev anyMatchItems do
+                    let hints = getHints items
+                    let innerTransposed = transposeHead hints
+                    let matchedHints =
+                        innerTransposed
+                        |> Seq.choose (function
+                            | HintNode(_) -> None
+                            | EndOfHint(hint) -> Some(hint))
+                        |> Seq.toList
+                    workStack.Push(BuildMerge(matchedHints, None, Some expr))
+                    workStack.Push(Compute innerTransposed)
+            
+                // Push work for lookup items (in reverse)
+                for (hashcode, items) in List.rev lookupItems do
+                    let hints = getHints items
+                    let innerTransposed = transposeHead hints
+                    let matchedHints =
+                        innerTransposed
+                        |> Seq.choose (function
+                            | HintNode(_) -> None
+                            | EndOfHint(hint) -> Some(hint))
+                        |> Seq.toList
+                    workStack.Push(BuildMerge(matchedHints, Some hashcode, None))
+                    workStack.Push(Compute innerTransposed)
+        
+            | BuildMerge(matchedHints, hashcode, expr) ->
+                let edges = resultStack.Pop()
+                let mergeResult = { Edges = edges; MatchedHint = matchedHints }
+                mergeStack.Push(struct(hashcode, expr, mergeResult))
+        
+            | Finalize(map, lookupCount, anyExprs) ->
+                // Pop lookup results and add to map
+                let lookupMapResults = 
+                    [ for _ in 1..lookupCount -> mergeStack.Pop() ]
+                    |> List.rev
+            
+                for struct(maybeHashcode, _, mergeResult) in lookupMapResults do
+                    match maybeHashcode with
+                    | Some hashcode -> map.Add(hashcode, mergeResult)
+                    | None -> ()
+            
+                // Pop any-match results
+                let anyResults =
+                    [ for _ in 1..anyExprs.Length -> mergeStack.Pop() ]
+                    |> List.rev
+            
+                let anyMatches =
+                    List.zip anyExprs (anyResults |> List.map (fun struct(_, _, r) -> r))
+                    |> List.choose (fun (expr, mergeResult) ->
+                        match expr with
+                        | HintPat(Pattern.Wildcard)
+                        | HintExpr(Expression.Wildcard) -> Some(None, mergeResult)
+                        | HintPat(Pattern.Variable(var))
+                        | HintExpr(Expression.Variable(var)) -> Some(Some(var), mergeResult)
+                        | _ -> None)
+            
+                resultStack.Push({ Lookup = map; AnyMatch = anyMatches })
     
-        finalResult
+        resultStack.Pop()
 
     let mergeHints hints =
         let transposed = hints |> List.map hintToList |> transposeHead
