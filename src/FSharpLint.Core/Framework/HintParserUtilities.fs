@@ -275,46 +275,10 @@ module MergeSyntaxTrees =
     let getHints items =
         items |> Seq.map (fun (_, _, _, hint) -> hint) |> Seq.toList
 
-    let mergeHints hints =
-// fsharplint:disable EnsureTailCallDiagnosticsInRecursiveFunctions
-        let rec getEdges transposed =
-            let map = Dictionary<_, _>()
-
-            transposed
-            |> List.choose (function
-                | HintNode(expr, depth, rest) -> Some(getKey expr, expr, depth, rest)
-                | EndOfHint(_) -> None)
-            |> List.filter (isAnyMatch >> not)
-            |> Seq.groupBy (fun (key, expr, _, _) -> Utilities.hash2 key (getHashCode expr))
-            |> Seq.iter (fun (hashcode, items) -> map.Add(hashcode, mergeHints (getHints items)))
-
-            let anyMatches =
-                transposed
-                |> List.choose (function
-                    | HintNode(expr, depth, rest) ->
-                        match (getKey expr, expr) with
-                        | (SyntaxHintNode.Wildcard as key), HintExpr(Expression.Wildcard)
-                        | (SyntaxHintNode.Wildcard as key), HintPat(Pattern.Wildcard)
-                        | (SyntaxHintNode.Variable as key), HintExpr(Expression.Variable(_))
-                        | (SyntaxHintNode.Variable as key), HintPat(Pattern.Variable(_)) -> Some(key, expr, depth, rest)
-                        | _ -> None
-                    | EndOfHint(_) -> None)
-                |> Seq.groupBy (fun (_, expr, _, _) -> expr)
-                |> Seq.choose (fun (expr, items) ->
-                    match expr with
-                    | HintPat(Pattern.Wildcard)
-                    | HintExpr(Expression.Wildcard) -> Some(None, mergeHints (getHints items))
-                    | HintPat(Pattern.Variable(var))
-                    | HintExpr(Expression.Variable(var)) -> Some(Some(var), mergeHints (getHints items))
-                    | _ -> None)
-                |> Seq.toList
-
-            { Lookup = map; AnyMatch = anyMatches }
-
-        and mergeHints hints =
+    [<TailCall>]
+    let rec private getEdges transposed =
+        let mergeHintsInner hints =
             let transposed = transposeHead hints
-
-            let edges = getEdges transposed
 
             let matchedHints =
                 transposed
@@ -322,13 +286,46 @@ module MergeSyntaxTrees =
                     | HintNode(_) -> None
                     | EndOfHint(hint) -> Some(hint))
                 |> Seq.toList
-
+    
             {
-                Edges = edges
+                Edges = getEdges transposed
                 MatchedHint = matchedHints
             }
-// fsharplint:enable EnsureTailCallDiagnosticsInRecursiveFunctions
 
+        let map = Dictionary<_, _>()
+
+        transposed
+        |> List.choose (function
+            | HintNode(expr, depth, rest) -> Some(getKey expr, expr, depth, rest)
+            | EndOfHint(_) -> None)
+        |> List.filter (isAnyMatch >> not)
+        |> Seq.groupBy (fun (key, expr, _, _) -> Utilities.hash2 key (getHashCode expr))
+        |> Seq.iter (fun (hashcode, items) -> map.Add(hashcode, mergeHintsInner (getHints items)))
+
+        let anyMatches =
+            transposed
+            |> List.choose (function
+                | HintNode(expr, depth, rest) ->
+                    match (getKey expr, expr) with
+                    | (SyntaxHintNode.Wildcard as key), HintExpr(Expression.Wildcard)
+                    | (SyntaxHintNode.Wildcard as key), HintPat(Pattern.Wildcard)
+                    | (SyntaxHintNode.Variable as key), HintExpr(Expression.Variable(_))
+                    | (SyntaxHintNode.Variable as key), HintPat(Pattern.Variable(_)) -> Some(key, expr, depth, rest)
+                    | _ -> None
+                | EndOfHint(_) -> None)
+            |> Seq.groupBy (fun (_, expr, _, _) -> expr)
+            |> Seq.choose (fun (expr, items) ->
+                match expr with
+                | HintPat(Pattern.Wildcard)
+                | HintExpr(Expression.Wildcard) -> Some(None, mergeHintsInner (getHints items))
+                | HintPat(Pattern.Variable(var))
+                | HintExpr(Expression.Variable(var)) -> Some(Some(var), mergeHintsInner (getHints items))
+                | _ -> None)
+            |> Seq.toList
+
+        { Lookup = map; AnyMatch = anyMatches }
+
+    let mergeHints hints =
         let transposed = hints |> List.map hintToList |> transposeHead
 
         getEdges transposed
