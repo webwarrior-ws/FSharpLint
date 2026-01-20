@@ -30,7 +30,7 @@ let runner args =
         let isFirstClauseTarget firstClause =
             match firstClause with
             | SynMatchClause(SynPat.Const(_), _, _, _, _, _) -> true
-            | SynMatchClause(SynPat.Named(SynIdent.SynIdent(ident, _), _, _, range), _, _, _, _, _) -> 
+            | SynMatchClause(SynPat.Named(SynIdent.SynIdent(ident, _), _, _, range), None, _, _, _, _) -> 
                 not <| isDiscriminatedUnionCase (List.singleton ident.idText) range
             | SynMatchClause(SynPat.LongIdent(SynLongIdent(ident, _, _), _, _, SynArgPats.Pats [], _, range), _, _, _, _, _) -> 
                 not <| isDiscriminatedUnionCase (ident |> List.map (fun id -> id.idText)) range
