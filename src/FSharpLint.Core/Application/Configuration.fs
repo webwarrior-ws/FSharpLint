@@ -388,7 +388,7 @@ type ConventionsConfig =
       usedUnderscorePrefixedElements:EnabledConfig option
       ensureTailCallDiagnosticsInRecursiveFunctions:EnabledConfig option
       favourNestedFunctions:EnabledConfig option
-      favourBasicControlFlow:EnabledConfig option }
+      recommendIfElseConstructOverMatch:EnabledConfig option }
 with
     member this.Flatten() =
         Array.concat
@@ -417,7 +417,7 @@ with
                 this.ensureTailCallDiagnosticsInRecursiveFunctions |> Option.bind (constructRuleIfEnabled EnsureTailCallDiagnosticsInRecursiveFunctions.rule) |> Option.toArray
                 this.indexerAccessorStyleConsistency |> Option.bind (constructRuleWithConfig IndexerAccessorStyleConsistency.rule) |> Option.toArray
                 this.favourNestedFunctions |> Option.bind (constructRuleIfEnabled FavourNestedFunctions.rule) |> Option.toArray
-                this.favourBasicControlFlow |> Option.bind (constructRuleIfEnabled FavourBasicControlFlow.rule) |> Option.toArray
+                this.recommendIfElseConstructOverMatch |> Option.bind (constructRuleIfEnabled RecommendIfElseConstructOverMatch.rule) |> Option.toArray
             |]
 
 [<Obsolete(ObsoleteMsg, ObsoleteWarnTreatAsError)>]
@@ -488,7 +488,7 @@ type Configuration =
       RedundantNewKeyword:EnabledConfig option
       FavourNonMutablePropertyInitialization:EnabledConfig option
       FavourReRaise:EnabledConfig option
-      FavourBasicControlFlow:EnabledConfig option
+      RecommendIfElseConstructOverMatch:EnabledConfig option
       FavourStaticEmptyFields:EnabledConfig option
       AsyncExceptionWithoutReturn:EnabledConfig option
       UnneededRecKeyword:EnabledConfig option
@@ -592,7 +592,7 @@ with
         RedundantNewKeyword = None
         FavourNonMutablePropertyInitialization = None
         FavourReRaise = None
-        FavourBasicControlFlow = None
+        RecommendIfElseConstructOverMatch = None
         FavourStaticEmptyFields = None
         AsyncExceptionWithoutReturn = None
         UnneededRecKeyword = None
@@ -872,7 +872,7 @@ let flattenConfig (config:Configuration) =
                 config.FavourSingleton |> Option.bind (constructRuleIfEnabled FavourSingleton.rule)
                 config.NoAsyncRunSynchronouslyInLibrary |> Option.bind (constructRuleIfEnabled NoAsyncRunSynchronouslyInLibrary.rule)
                 config.FavourNestedFunctions |> Option.bind (constructRuleIfEnabled FavourNestedFunctions.rule)
-                config.FavourBasicControlFlow |> Option.bind (constructRuleIfEnabled FavourBasicControlFlow.rule)
+                config.RecommendIfElseConstructOverMatch |> Option.bind (constructRuleIfEnabled RecommendIfElseConstructOverMatch.rule)
             |]
 
     findDeprecation config deprecatedAllRules allRules

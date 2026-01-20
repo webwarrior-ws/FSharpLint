@@ -96,4 +96,4 @@ let IndexerAccessorStyleConsistency = identifier 88
 let FavourSingleton = identifier 89
 let NoAsyncRunSynchronouslyInLibrary = identifier 90
 let FavourNestedFunctions = identifier 91
-let FavourBasicControlFlow = identifier 92
+let RecommendIfElseConstructOverMatch = identifier 92
