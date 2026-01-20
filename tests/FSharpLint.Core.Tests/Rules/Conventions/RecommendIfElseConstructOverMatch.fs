@@ -38,6 +38,23 @@ match foo with
 
         Assert.IsTrue this.NoErrorsExist
 
+
+    [<Test>]
+    member this.ThePresenceOfNullaryDUCaseShouldNotProduceError() =
+        this.Parse """
+type Baz =
+    | Bar
+
+match foo with
+| Bar -> ()
+| _ -> ()
+
+match foo with
+| Baz.Bar -> ()
+| _ -> () """
+
+        Assert.IsTrue this.NoErrorsExist
+
     [<Test>]
     member this.TwoClausesWithWildcardShouldProduceError() =
         this.Parse """
