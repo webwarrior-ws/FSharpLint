@@ -23,6 +23,11 @@ let runner (args: AstNodeRuleParams) =
             fields
         | _ -> List.empty
 
+    let isNamedFieldDeclaration (field: SynField) =
+        match field with
+        | SynField(_, false, Some(_), _, false, _, _, _, _) -> true
+        | _ -> false
+
     match args.AstNode with
     | AstNode.TypeSimpleRepresentation(SynTypeDefnSimpleRepr.Union(_, cases, _)) ->
         let fields =
@@ -34,11 +39,52 @@ let runner (args: AstNodeRuleParams) =
         else
             fields
             |> Array.ofList
-            |> Array.collect 
-                (fun field ->
-                    match field with
-                    | SynField(_, false, None, _, false, _, _, range, _) -> emitWarning range
-                    | _ -> Array.empty)
+            |> Array.filter (not << isNamedFieldDeclaration)
+            |> Array.collect (fun field -> emitWarning field.Range)
+    | AstNode.Match(SynMatchClause(SynPat.LongIdent(ident, _, _, argPats, _, range), _, _, _, _, _)) ->
+        match argPats with
+        | SynArgPats.Pats(pats) when pats.Length >= 1 ->
+            match args.CheckInfo with
+            | Some checkInfo ->
+                let maybeDuCaseSymbolUse =
+                    checkInfo.GetSymbolUseAtLocation(
+                        ident.Range.StartLine, 
+                        ident.Range.EndColumn, 
+                        args.Lines.[ident.Range.StartLine], 
+                        ident.LongIdent |> List.map (fun id -> id.idText)
+                    )
+
+                match maybeDuCaseSymbolUse with
+                | Some duCaseSymbolUse ->
+                    let maybeDuCaseDeclarationSymbol =
+                        checkInfo.GetAllUsesOfAllSymbolsInFile()
+                        |> Seq.tryFind 
+                            (fun symbolUse -> 
+                                symbolUse.IsFromDefinition 
+                                && symbolUse.Symbol.IsEffectivelySameAs duCaseSymbolUse.Symbol)
+
+                    match maybeDuCaseDeclarationSymbol with
+                    | Some duCaseDeclarationSymbol ->
+                        let duCaseHasNamedFields =
+                            args.SyntaxArray
+                            |> Array.exists 
+                                (fun node -> 
+                                    match node.Actual with
+                                    | AstNode.UnionCase(SynUnionCase(_, unionCaseIdent, _, _, _, _, _) as unionCase)
+                                        when unionCaseIdent.Range = duCaseDeclarationSymbol.Range ->
+                                        getFields unionCase
+                                        |> List.exists isNamedFieldDeclaration
+                                    | _ -> false)
+
+                        if duCaseHasNamedFields then
+                            emitWarning range
+                        else
+                            Array.empty
+                    | None -> Array.empty
+                | None -> Array.empty
+            | None -> Array.empty
+        | _ ->
+            Array.empty
     | _ ->
         Array.empty
 
