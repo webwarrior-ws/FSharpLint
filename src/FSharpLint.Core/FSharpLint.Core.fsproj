@@ -65,6 +65,7 @@
     <Compile Include="Rules\Conventions\DiscourageStringInterpolationWithStringFormat.fs" />
     <Compile Include="Rules\Conventions\FavourNamedMembers.fs" />
     <Compile Include="Rules\Conventions\SynchronousFunctionNames.fs" />
+    <Compile Include="Rules\Conventions\AsynchronousFunctionNames.fs" />
     <Compile Include="Rules\Conventions\SourceLength\SourceLengthHelper.fs" />
     <Compile Include="Rules\Conventions\SourceLength\MaxLinesInLambdaFunction.fs" />
     <Compile Include="Rules\Conventions\SourceLength\MaxLinesInMatchLambdaFunction.fs" />
