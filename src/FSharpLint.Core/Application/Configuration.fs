@@ -676,6 +676,11 @@ with
         FavourNamedMembers = None
     }
 
+    static member TotalRulesCount =
+        let fields = FSharp.Reflection.FSharpType.GetRecordFields(typeof<Configuration>)
+        fields
+        |> Array.sumBy (fun field -> if field.IsDefined typeof<ObsoleteAttribute> then 0 else 1)
+
 // fsharplint:enable MaxLinesInMember
 // fsharplint:enable RecordFieldNames
 
@@ -712,12 +717,22 @@ type LineRules =
     { GenericLineRules:RuleMetadata<LineRuleConfig> []
       NoTabCharactersRule:RuleMetadata<NoTabCharactersRuleConfig> option
       IndentationRule:RuleMetadata<IndentationRuleConfig> option }
+    with
+        member this.Count =
+            this.GenericLineRules.Length
+            + (Option.count this.IndentationRule)
+            + (Option.count this.NoTabCharactersRule)
 
 type LoadedRules =
     { GlobalConfig:Rules.GlobalRuleConfig
       AstNodeRules:RuleMetadata<AstNodeRuleConfig> []
       LineRules:LineRules
       DeprecatedRules:Rule [] }
+    with
+        member this.Count =
+            this.AstNodeRules.Length 
+            + this.LineRules.Count
+            + this.DeprecatedRules.Length
 
 let getGlobalConfig (maybeGlobalConfig: GlobalConfig option) =
     maybeGlobalConfig

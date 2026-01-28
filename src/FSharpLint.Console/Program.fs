@@ -166,6 +166,14 @@ let main argv =
         let projectRecommendationMessage = "Using a project (slnx/sln/fsproj) can detect more issues."
 
         try
+            match Lint.getConfig lintParams.Configuration with
+            | Ok config ->
+                let enabledRulesCount = (Configuration.flattenConfig config).Count
+                let allRulesCount = Configuration.Configuration.TotalRulesCount
+                let disabledRulesCount = allRulesCount - enabledRulesCount
+                output.WriteInfo $"Running FSharpLint with {allRulesCount} rules ({enabledRulesCount} enabled, {disabledRulesCount} disabled)..."
+            | Error _ -> ()
+
             let lintResult =
                 match fileType with
                 | FileType.File -> 
