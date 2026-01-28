@@ -677,9 +677,20 @@ with
     }
 
     static member TotalRulesCount =
-        let fields = FSharp.Reflection.FSharpType.GetRecordFields(typeof<Configuration>)
-        fields
-        |> Array.sumBy (fun field -> if field.IsDefined typeof<ObsoleteAttribute> then 0 else 1)
+        let numRulesDefinedByField (field: PropertyInfo) =
+            if field.PropertyType.GetGenericTypeDefinition() = typedefof<Option<_>> then
+                let genericArg = field.PropertyType.GenericTypeArguments.[0]
+                if genericArg = typeof<HintConfig> then
+                    1
+                elif genericArg.IsGenericType && genericArg.GetGenericTypeDefinition() = typedefof<RuleConfig<_>> then
+                    1
+                else
+                    0
+            else
+                0
+
+        FSharp.Reflection.FSharpType.GetRecordFields typeof<Configuration>
+        |> Array.sumBy numRulesDefinedByField
 
 // fsharplint:enable MaxLinesInMember
 // fsharplint:enable RecordFieldNames
