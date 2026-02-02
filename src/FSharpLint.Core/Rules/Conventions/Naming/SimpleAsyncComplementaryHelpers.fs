@@ -5,11 +5,29 @@ open FSharpLint.Framework
 open FSharpLint.Framework.Suggestion
 open FSharpLint.Framework.Ast
 open FSharpLint.Framework.Rules
+open Helper.Naming.Asynchronous
 open FSharp.Compiler.Syntax
 
+[<TailCall>]
+let rec private getBindings (acc: list<SynBinding>) (declarations: list<SynModuleDecl>) =
+    match declarations with
+    | SynModuleDecl.Let(_, bindings, _) :: rest -> getBindings (acc @ bindings) rest
+    | SynModuleDecl.NestedModule(_, _, innerDecls, _, _, _) :: rest -> getBindings acc (innerDecls @ rest)
+    | [] -> acc
+    | _ :: rest -> getBindings acc rest
+
 let runner (args: AstNodeRuleParams) =
+    let processDeclarations (declarations: list<SynModuleDecl>) =
+        let bindings = getBindings List.Empty declarations
+
+        failwith "Not yet implemented"
+
     match args.AstNode with
-    | _ -> failwith "Not implemented"
+    | Ast.ModuleOrNamespace(SynModuleOrNamespace(_, _, _, declarations, _, _, _, _, _)) ->
+        processDeclarations declarations
+    | ModuleDeclaration(SynModuleDecl.NestedModule(_, _, declarations, _, _, _)) ->
+        processDeclarations declarations
+    | _ -> Array.empty
 
 let rule =
     AstNodeRule
