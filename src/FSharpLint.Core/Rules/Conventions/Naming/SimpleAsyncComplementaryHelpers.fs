@@ -21,12 +21,12 @@ type private Func =
     }
 
 [<TailCall>]
-let rec private getBindings (declarations: list<SynModuleDecl>) =
+let rec private getBindings (acc: list<SynBinding>) (declarations: list<SynModuleDecl>) =
     match declarations with
-    | SynModuleDecl.Let(_, bindings, _) :: rest -> bindings @ getBindings rest
-    | SynModuleDecl.NestedModule(_, _, innerDecls, _, _, _) :: rest -> getBindings (innerDecls @ rest)
-    | [] -> List.Empty
-    | _ :: rest -> getBindings rest
+    | SynModuleDecl.Let(_, bindings, _) :: rest -> getBindings (acc @ bindings) rest
+    | SynModuleDecl.NestedModule(_, _, innerDecls, _, _, _) :: rest -> getBindings acc (innerDecls @ rest)
+    | [] -> acc
+    | _ :: rest -> getBindings acc rest
 
 let runner (args: AstNodeRuleParams) =
     let emitWarning (func: Func) =
@@ -70,7 +70,7 @@ let runner (args: AstNodeRuleParams) =
 
 
     let processDeclarations (declarations: list<SynModuleDecl>) =
-        let bindings = getBindings declarations
+        let bindings = getBindings List.Empty declarations
 
         let funcs = 
             bindings
