@@ -17,10 +17,56 @@ let rec private getBindings (declarations: list<SynModuleDecl>) =
     | _ :: rest -> getBindings rest
 
 let runner (args: AstNodeRuleParams) =
+    let emitWarning range missingFunctionName =
+        Array.singleton
+            {
+                Range = range
+                Message = $"Create {missingFunctionName}"
+                SuggestedFix = None
+                TypeChecks = List.empty
+            }
+
     let processDeclarations (declarations: list<SynModuleDecl>) =
         let bindings = getBindings declarations
 
-        failwith "Not yet implemented"
+        let funcsGrouped = 
+            bindings
+            |> List.choose
+                (fun binding ->
+                    match binding with
+                    | SynBinding(_, _, _, _, _, _, _, SynPat.LongIdent(funcIdent, _, _, _, _, _), _, _, _, _, _) ->
+                        match funcIdent with
+                        | HasAsyncPrefix name -> Some(0, funcIdent, name.Substring asyncSuffixOrPrefix.Length)
+                        | HasAsyncSuffix name -> Some(1, funcIdent, name.Substring(0, name.Length - asyncSuffixOrPrefix.Length))
+                        | HasNoAsyncPrefixOrSuffix _ -> None
+                    | _ -> None)
+            |> List.groupBy (fun (key, _, _) -> key)
+            |> Map.ofList
+
+        let asyncFuncs = funcsGrouped |> Map.tryFind 0 |> Option.defaultValue List.Empty
+        let taskFuncs = funcsGrouped |> Map.tryFind 1 |> Option.defaultValue List.Empty
+        
+        let asyncFunWarnings =
+            asyncFuncs
+            |> List.map
+                (fun (_, ident, baseName) ->
+                    if taskFuncs |> List.exists (fun (_, _, otherBaseName) -> baseName = otherBaseName) then
+                        Array.empty
+                    else
+                        emitWarning ident.Range (baseName + asyncSuffixOrPrefix))
+            |> Array.concat
+
+        let taskFunWarnings =
+            taskFuncs
+            |> List.map
+                (fun (_, ident, baseName) ->
+                    if asyncFuncs |> List.exists (fun (_, _, otherBaseName) -> baseName = otherBaseName) then
+                        Array.empty
+                    else
+                        emitWarning ident.Range (asyncSuffixOrPrefix + baseName))
+            |> Array.concat
+        
+        Array.append asyncFunWarnings taskFunWarnings
 
     match args.AstNode with
     | Ast.ModuleOrNamespace(SynModuleOrNamespace(_, _, _, declarations, _, _, _, _, _)) ->
