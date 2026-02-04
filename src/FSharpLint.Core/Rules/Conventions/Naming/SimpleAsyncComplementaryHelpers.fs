@@ -31,11 +31,22 @@ let rec private getBindings (declarations: list<SynModuleDecl>) =
 
 let runner (args: AstNodeRuleParams) =
     let emitWarning (func: Func) =
+        let funcDefinitionString = 
+            match ExpressionUtilities.tryFindTextOfRange func.Range args.FileContent with
+            | Some text -> text
+            | None -> failwithf "Invalid range: %A" func.Range
+
         let message =
             match func.ReturnType with
-            | Async -> sprintf "Create %s that just calls Async.StartAsTask(AsyncBar())" (func.BaseName + asyncSuffixOrPrefix)
-            | AsyncUnit -> sprintf "Create %s(): Task that just calls Async.StartAsTask(AsyncBar())" (func.BaseName + asyncSuffixOrPrefix)
-            | Task -> sprintf "Create %s that just calls async { return Async.AwaitTask (BarAsync()) }" (asyncSuffixOrPrefix + func.BaseName)
+            | Async -> 
+                let newFuncName = funcDefinitionString.Replace(asyncSuffixOrPrefix + func.BaseName, func.BaseName + asyncSuffixOrPrefix)
+                sprintf "Create %s that just calls Async.StartAsTask(AsyncBar())" newFuncName
+            | AsyncUnit -> 
+                let newFuncName = funcDefinitionString.Replace(asyncSuffixOrPrefix + func.BaseName, func.BaseName + asyncSuffixOrPrefix)
+                sprintf "Create %s: Task that just calls Async.StartAsTask(AsyncBar())" newFuncName
+            | Task ->
+                let newFuncName = funcDefinitionString.Replace(func.BaseName + asyncSuffixOrPrefix, asyncSuffixOrPrefix + func.BaseName)
+                sprintf "Create %s that just calls async { return Async.AwaitTask (BarAsync()) }" newFuncName
 
         Array.singleton
             {
@@ -54,7 +65,7 @@ let runner (args: AstNodeRuleParams) =
             |> List.choose
                 (fun binding ->
                     match binding with
-                    | SynBinding(_, _, _, _, _, _, _, SynPat.LongIdent(funcIdent, _, _, _, (None | Some(SynAccess.Public _)), _), returnInfo, _, _, _, _) ->
+                    | SynBinding(_, _, _, _, _, _, _, SynPat.LongIdent(funcIdent, _, _, _, (None | Some(SynAccess.Public _)), _), returnInfo, _, range, _, _) ->
                         match funcIdent with
                         | HasAsyncPrefix name ->
                             let returnType =
@@ -67,14 +78,14 @@ let runner (args: AstNodeRuleParams) =
                             Some
                                 { 
                                     BaseName = name.Substring asyncSuffixOrPrefix.Length
-                                    Range = funcIdent.Range
+                                    Range = range
                                     ReturnType = returnType
                                 }
                         | HasAsyncSuffix name ->
                             Some
                                 {
                                     BaseName = name.Substring(0, name.Length - asyncSuffixOrPrefix.Length)
-                                    Range = funcIdent.Range
+                                    Range = range
                                     ReturnType = Task
                                 }
                         | HasNoAsyncPrefixOrSuffix _ ->
