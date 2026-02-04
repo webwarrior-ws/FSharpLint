@@ -18,6 +18,7 @@ type private Func =
         BaseName: string
         Range: range
         ReturnType: ReturnType
+        Arguments: list<string>
     }
 
 [<TailCall>]
@@ -40,6 +41,13 @@ let runner (args: AstNodeRuleParams) =
             | Some typeParam -> ExpressionUtilities.tryFindTextOfRange typeParam.Range args.FileContent
             | None -> None
 
+        let argString =
+            match func.Arguments with
+            | [] | ["()"] ->
+                "()"
+            | arguments ->
+                " " + String.Join(" ", arguments)
+
         let message =
             match func.ReturnType with
             | Async typeParam -> 
@@ -49,14 +57,14 @@ let runner (args: AstNodeRuleParams) =
                     | Some "unit" -> $": Task"
                     | Some str -> $": Task<{str}>"
                     | None -> String.Empty
-                sprintf "Create %s%s that just calls Async.StartAsTask(Async%s())" newFuncName typeDefString func.BaseName
+                sprintf "Create %s%s that just calls Async.StartAsTask(Async%s%s)" newFuncName typeDefString func.BaseName argString
             | Task typeParam ->
                 let newFuncName = funcDefinitionString.Replace(func.BaseName + asyncSuffixOrPrefix, asyncSuffixOrPrefix + func.BaseName)
                 let typeDefString =
                     match tryGetTypeParamString typeParam with
                     | Some str -> $": Async<{str}>"
                     | None -> String.Empty
-                sprintf "Create %s%s that just calls async { return Async.AwaitTask (%sAsync()) }" newFuncName typeDefString func.BaseName
+                sprintf "Create %s%s that just calls async { return Async.AwaitTask (%sAsync%s) }" newFuncName typeDefString func.BaseName argString
 
         Array.singleton
             {
@@ -72,13 +80,22 @@ let runner (args: AstNodeRuleParams) =
 
         let tryGetFunction (binding: SynBinding) =
             match binding with
-            | SynBinding(_, _, _, _, _, _, _, SynPat.LongIdent(funcIdent, _, _, _, (None | Some(SynAccess.Public _)), _), returnInfo, _, _, _, _) ->
+            | SynBinding(_, _, _, _, _, _, _, SynPat.LongIdent(funcIdent, _, _, argPats, (None | Some(SynAccess.Public _)), _), returnInfo, _, _, _, _) ->
                 let returnTypeParam =
                     match returnInfo with
                     | Some(SynBindingReturnInfo(SynType.App(SynType.LongIdent(SynLongIdent _), _, [ typeParam ], _, _, _, _), _, _, _)) ->
                         Some typeParam 
                     | _ -> None
                         
+                let funcArgRanges = 
+                    match argPats with
+                    | SynArgPats.NamePatPairs(pairs, _, _) -> pairs |> List.map (fun (ident, _, _) -> ident.idRange)
+                    | SynArgPats.Pats(pats) -> pats|> List.map (fun pat -> pat.Range)
+
+                let funcArgs =
+                    funcArgRanges
+                    |> List.choose (fun range -> ExpressionUtilities.tryFindTextOfRange range args.FileContent)
+
                 match funcIdent with
                 | HasAsyncPrefix name ->
                     Some
@@ -86,6 +103,7 @@ let runner (args: AstNodeRuleParams) =
                             BaseName = name.Substring asyncSuffixOrPrefix.Length
                             Range = binding.RangeOfHeadPattern
                             ReturnType = Async returnTypeParam
+                            Arguments = funcArgs
                         }
                 | HasAsyncSuffix name ->
                     Some
@@ -93,6 +111,7 @@ let runner (args: AstNodeRuleParams) =
                             BaseName = name.Substring(0, name.Length - asyncSuffixOrPrefix.Length)
                             Range = binding.RangeOfHeadPattern
                             ReturnType = Task returnTypeParam
+                            Arguments = funcArgs
                         }
                 | HasNoAsyncPrefixOrSuffix _ ->
                     None
