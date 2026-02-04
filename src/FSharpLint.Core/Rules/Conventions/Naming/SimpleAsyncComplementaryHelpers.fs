@@ -7,6 +7,16 @@ open FSharpLint.Framework.Ast
 open FSharpLint.Framework.Rules
 open Helper.Naming.Asynchronous
 open FSharp.Compiler.Syntax
+open FSharp.Compiler.Text
+
+type private Func =
+    | AsyncFunc of range: range * baseName: string
+    | TaskFunc of range: range * baseName: string
+    with
+        member this.BaseName =
+            match this with
+            | AsyncFunc(_, name) -> name
+            | TaskFunc(_, name) -> name
 
 [<TailCall>]
 let rec private getBindings (acc: list<SynBinding>) (declarations: list<SynModuleDecl>) =
@@ -17,56 +27,57 @@ let rec private getBindings (acc: list<SynBinding>) (declarations: list<SynModul
     | _ :: rest -> getBindings acc rest
 
 let runner (args: AstNodeRuleParams) =
-    let emitWarning range missingFunctionName =
-        Array.singleton
-            {
-                Range = range
-                Message = $"Create {missingFunctionName}"
-                SuggestedFix = None
-                TypeChecks = List.empty
-            }
+    let emitWarning (func: Func) =
+        match func with
+        | AsyncFunc(range, baseName) ->
+            Array.singleton
+                {
+                    Range = range
+                    Message = sprintf "Create %s that just calls Async.StartAsTask(AsyncBar())" (baseName + asyncSuffixOrPrefix)
+                    SuggestedFix = None
+                    TypeChecks = List.empty
+                }
+        | TaskFunc(range, baseName) ->
+            Array.singleton
+                {
+                    Range = range
+                    Message = sprintf "Create %s that just calls async { return Async.AwaitTask (BarAsync()) }" (asyncSuffixOrPrefix + baseName)
+                    SuggestedFix = None
+                    TypeChecks = List.empty
+                }
 
     let processDeclarations (declarations: list<SynModuleDecl>) =
         let bindings = getBindings List.Empty declarations
 
-        let funcsGrouped = 
+        let funcs = 
             bindings
             |> List.choose
                 (fun binding ->
                     match binding with
                     | SynBinding(_, _, _, _, _, _, _, SynPat.LongIdent(funcIdent, _, _, _, (None | Some(SynAccess.Public _)), _), _, _, _, _, _) ->
                         match funcIdent with
-                        | HasAsyncPrefix name -> Some(0, funcIdent, name.Substring asyncSuffixOrPrefix.Length)
-                        | HasAsyncSuffix name -> Some(1, funcIdent, name.Substring(0, name.Length - asyncSuffixOrPrefix.Length))
-                        | HasNoAsyncPrefixOrSuffix _ -> None
+                        | HasAsyncPrefix name ->
+                            Some <| AsyncFunc(funcIdent.Range, name.Substring asyncSuffixOrPrefix.Length)
+                        | HasAsyncSuffix name ->
+                            Some <| TaskFunc(funcIdent.Range, name.Substring(0, name.Length - asyncSuffixOrPrefix.Length))
+                        | HasNoAsyncPrefixOrSuffix _ ->
+                            None
                     | _ -> None)
-            |> List.groupBy (fun (key, _, _) -> key)
-            |> Map.ofList
 
-        let asyncFuncs = funcsGrouped |> Map.tryFind 0 |> Option.defaultValue List.Empty
-        let taskFuncs = funcsGrouped |> Map.tryFind 1 |> Option.defaultValue List.Empty
+        let asyncFuncs = funcs |> List.filter (fun func -> func.IsAsyncFunc)
+        let taskFuncs = funcs |> List.filter (fun func -> func.IsTaskFunc)
         
-        let asyncFunWarnings =
-            asyncFuncs
+        let checkFuncs (targetFuncs: list<Func>) (otherFuncs: list<Func>) =
+            targetFuncs
             |> List.map
-                (fun (_, ident, baseName) ->
-                    if taskFuncs |> List.exists (fun (_, _, otherBaseName) -> baseName = otherBaseName) then
+                (fun func ->
+                    if otherFuncs |> List.exists (fun otherFunc -> otherFunc.BaseName = func.BaseName) then
                         Array.empty
                     else
-                        emitWarning ident.Range (baseName + asyncSuffixOrPrefix))
-            |> Array.concat
-
-        let taskFunWarnings =
-            taskFuncs
-            |> List.map
-                (fun (_, ident, baseName) ->
-                    if asyncFuncs |> List.exists (fun (_, _, otherBaseName) -> baseName = otherBaseName) then
-                        Array.empty
-                    else
-                        emitWarning ident.Range (asyncSuffixOrPrefix + baseName))
+                        emitWarning func)
             |> Array.concat
         
-        Array.append asyncFunWarnings taskFunWarnings
+        Array.append (checkFuncs asyncFuncs taskFuncs) (checkFuncs taskFuncs asyncFuncs)
 
     match args.AstNode with
     | Ast.ModuleOrNamespace(SynModuleOrNamespace(_, _, _, declarations, _, _, _, _, _)) ->
