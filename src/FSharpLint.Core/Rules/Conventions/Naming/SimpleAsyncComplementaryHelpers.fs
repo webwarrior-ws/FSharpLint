@@ -9,14 +9,17 @@ open Helper.Naming.Asynchronous
 open FSharp.Compiler.Syntax
 open FSharp.Compiler.Text
 
+type private ReturnType =
+    | Async
+    | AsyncUnit
+    | Task
+
 type private Func =
-    | AsyncFunc of range: range * baseName: string
-    | TaskFunc of range: range * baseName: string
-    with
-        member this.BaseName =
-            match this with
-            | AsyncFunc(_, name) -> name
-            | TaskFunc(_, name) -> name
+    {
+        BaseName: string
+        Range: range
+        ReturnType: ReturnType
+    }
 
 [<TailCall>]
 let rec private getBindings (declarations: list<SynModuleDecl>) =
@@ -28,23 +31,20 @@ let rec private getBindings (declarations: list<SynModuleDecl>) =
 
 let runner (args: AstNodeRuleParams) =
     let emitWarning (func: Func) =
-        match func with
-        | AsyncFunc(range, baseName) ->
-            Array.singleton
-                {
-                    Range = range
-                    Message = sprintf "Create %s that just calls Async.StartAsTask(AsyncBar())" (baseName + asyncSuffixOrPrefix)
-                    SuggestedFix = None
-                    TypeChecks = List.empty
-                }
-        | TaskFunc(range, baseName) ->
-            Array.singleton
-                {
-                    Range = range
-                    Message = sprintf "Create %s that just calls async { return Async.AwaitTask (BarAsync()) }" (asyncSuffixOrPrefix + baseName)
-                    SuggestedFix = None
-                    TypeChecks = List.empty
-                }
+        let message =
+            match func.ReturnType with
+            | Async -> sprintf "Create %s that just calls Async.StartAsTask(AsyncBar())" (func.BaseName + asyncSuffixOrPrefix)
+            | AsyncUnit -> sprintf "Create %s(): Task that just calls Async.StartAsTask(AsyncBar())" (func.BaseName + asyncSuffixOrPrefix)
+            | Task -> sprintf "Create %s that just calls async { return Async.AwaitTask (BarAsync()) }" (asyncSuffixOrPrefix + func.BaseName)
+
+        Array.singleton
+            {
+                Range = func.Range
+                Message = message
+                SuggestedFix = None
+                TypeChecks = List.empty
+            }
+
 
     let processDeclarations (declarations: list<SynModuleDecl>) =
         let bindings = getBindings declarations
@@ -54,18 +54,35 @@ let runner (args: AstNodeRuleParams) =
             |> List.choose
                 (fun binding ->
                     match binding with
-                    | SynBinding(_, _, _, _, _, _, _, SynPat.LongIdent(funcIdent, _, _, _, (None | Some(SynAccess.Public _)), _), _, _, _, _, _) ->
+                    | SynBinding(_, _, _, _, _, _, _, SynPat.LongIdent(funcIdent, _, _, _, (None | Some(SynAccess.Public _)), _), returnInfo, _, _, _, _) ->
                         match funcIdent with
                         | HasAsyncPrefix name ->
-                            Some <| AsyncFunc(funcIdent.Range, name.Substring asyncSuffixOrPrefix.Length)
+                            let returnType =
+                                match returnInfo with
+                                | Some(SynBindingReturnInfo(SynType.App(SynType.LongIdent(SynLongIdent(_, _, _)), _, [ SynType.LongIdent (SynLongIdent ([ unitIdent ], [], [None])) ], _, _, _, _), _, _, _))
+                                    when unitIdent.idText = "unit" ->
+                                    AsyncUnit
+                                | _ -> Async
+
+                            Some
+                                { 
+                                    BaseName = name.Substring asyncSuffixOrPrefix.Length
+                                    Range = funcIdent.Range
+                                    ReturnType = returnType
+                                }
                         | HasAsyncSuffix name ->
-                            Some <| TaskFunc(funcIdent.Range, name.Substring(0, name.Length - asyncSuffixOrPrefix.Length))
+                            Some
+                                {
+                                    BaseName = name.Substring(0, name.Length - asyncSuffixOrPrefix.Length)
+                                    Range = funcIdent.Range
+                                    ReturnType = Task
+                                }
                         | HasNoAsyncPrefixOrSuffix _ ->
                             None
                     | _ -> None)
 
-        let asyncFuncs = funcs |> List.filter (fun func -> func.IsAsyncFunc)
-        let taskFuncs = funcs |> List.filter (fun func -> func.IsTaskFunc)
+        let asyncFuncs = funcs |> List.filter (fun func -> func.ReturnType <> Task)
+        let taskFuncs = funcs |> List.filter (fun func -> func.ReturnType = Task)
         
         let checkFuncs (targetFuncs: list<Func>) (otherFuncs: list<Func>) =
             targetFuncs
