@@ -80,7 +80,7 @@ let runner (args: AstNodeRuleParams) =
                     | SynBinding(_, _, _, _, _, _, _, SynPat.LongIdent(funcIdent, _, _, _, (None | Some(SynAccess.Public _)), _), returnInfo, _, range, _, _) ->
                         let returnTypeParam =
                             match returnInfo with
-                            | Some(SynBindingReturnInfo(SynType.App(SynType.LongIdent(SynLongIdent(_, _, _)), _, [ typeParam ], _, _, _, _), _, _, _)) ->
+                            | Some(SynBindingReturnInfo(SynType.App(SynType.LongIdent(SynLongIdent _), _, [ typeParam ], _, _, _, _), _, _, _)) ->
                                 Some typeParam 
                             | _ -> None
                         
