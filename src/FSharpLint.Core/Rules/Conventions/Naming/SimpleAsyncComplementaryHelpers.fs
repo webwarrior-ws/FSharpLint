@@ -67,14 +67,27 @@ let runner (args: AstNodeRuleParams) =
                     | Some "unit" -> ": Task"
                     | Some str -> $": Task<{str}>"
                     | None -> String.Empty
-                sprintf "Create %s%s that just calls Async.StartAsTask(%s%s%s)" newFuncNameWithProperCase typeDefString prefix func.BaseName func.ArgumentsString
+                String.Format(
+                    Resources.GetString "RulesSimpleAsyncComplementaryHelpersAsync",
+                    newFuncNameWithProperCase,
+                    typeDefString,
+                    prefix,
+                    func.BaseName,
+                    func.ArgumentsString
+                )
             | Task typeParam ->
                 let newFuncName = funcDefinitionString.Replace(func.BaseName + asyncSuffixOrPrefix, asyncSuffixOrPrefix + func.BaseName)
                 let typeDefString =
                     match tryGetTypeParamString typeParam with
                     | Some str -> $": Async<{str}>"
                     | None -> String.Empty
-                sprintf "Create %s%s that just calls async { return Async.AwaitTask (%sAsync%s) }" newFuncName typeDefString func.BaseName func.ArgumentsString
+                String.Format(
+                    Resources.GetString "RulesSimpleAsyncComplementaryHelpersTask",
+                    newFuncName,
+                    typeDefString,
+                    func.BaseName,
+                    func.ArgumentsString
+                )
 
         Array.singleton
             {
