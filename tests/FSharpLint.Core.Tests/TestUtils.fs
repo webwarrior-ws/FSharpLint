@@ -15,7 +15,7 @@
 
     let private performanceTestSourceFile = basePath </> "TypeChecker.fs"
 
-    let asyncGenerateAst source =
+    let internal asyncGenerateAst source =
         async {
             let checker = FSharpChecker.Create(keepAssemblyContents=true)
             let sourceText = SourceText.ofString source
