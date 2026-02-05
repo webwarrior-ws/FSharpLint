@@ -10,7 +10,7 @@ open FSharp.Compiler.Syntax
 open FSharp.Compiler.Text
 
 type private ReturnType =
-    | Async of typeParam: Option<SynType>
+    | Async of typeParam: Option<SynType> * isLowercase: bool
     | Task of typeParam: Option<SynType>
 
 type private Func =
@@ -50,14 +50,24 @@ let runner (args: AstNodeRuleParams) =
 
         let message =
             match func.ReturnType with
-            | Async typeParam -> 
-                let newFuncName = funcDefinitionString.Replace(asyncSuffixOrPrefix + func.BaseName, func.BaseName + asyncSuffixOrPrefix)
+            | Async (typeParam, isLowercase) -> 
+                let prefix =
+                    if isLowercase then
+                        asyncSuffixOrPrefix.ToLowerInvariant()
+                    else
+                        asyncSuffixOrPrefix
+                let newFuncName = funcDefinitionString.Replace(prefix + func.BaseName, func.BaseName + asyncSuffixOrPrefix)
+                let newFuncNameWithProperCase =
+                    if isLowercase then
+                        sprintf "%c%s" (Char.ToLowerInvariant newFuncName.[0]) (newFuncName.Substring 1)
+                    else
+                        newFuncName
                 let typeDefString =
                     match tryGetTypeParamString typeParam with
                     | Some "unit" -> ": Task"
                     | Some str -> $": Task<{str}>"
                     | None -> String.Empty
-                sprintf "Create %s%s that just calls Async.StartAsTask(Async%s%s)" newFuncName typeDefString func.BaseName func.ArgumentsString
+                sprintf "Create %s%s that just calls Async.StartAsTask(%s%s%s)" newFuncNameWithProperCase typeDefString prefix func.BaseName func.ArgumentsString
             | Task typeParam ->
                 let newFuncName = funcDefinitionString.Replace(func.BaseName + asyncSuffixOrPrefix, asyncSuffixOrPrefix + func.BaseName)
                 let typeDefString =
@@ -117,7 +127,7 @@ let runner (args: AstNodeRuleParams) =
                         { 
                             BaseName = name.Substring asyncSuffixOrPrefix.Length
                             Range = binding.RangeOfHeadPattern
-                            ReturnType = Async returnTypeParam
+                            ReturnType = Async(returnTypeParam, Char.IsLower name.[0])
                             ArgumentsString = funcArgs
                         }
                 | HasAsyncSuffix name ->
@@ -137,11 +147,14 @@ let runner (args: AstNodeRuleParams) =
         let asyncFuncs = funcs |> List.filter (fun func -> func.ReturnType.IsAsync)
         let taskFuncs = funcs |> List.filter (fun func -> func.ReturnType.IsTask)
         
+        let haveSameBaseName (func: Func) (otherFunc: Func) =
+            otherFunc.BaseName.Equals(func.BaseName, StringComparison.InvariantCultureIgnoreCase)
+
         let checkFuncs (targetFuncs: list<Func>) (otherFuncs: list<Func>) =
             targetFuncs
             |> List.map
                 (fun func ->
-                    if otherFuncs |> List.exists (fun otherFunc -> otherFunc.BaseName = func.BaseName) then
+                    if otherFuncs |> List.exists (haveSameBaseName func) then
                         Array.empty
                     else
                         emitWarning func)
