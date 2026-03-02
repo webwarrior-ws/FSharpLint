@@ -39,7 +39,9 @@ module TypedTree =
         | _ -> None
 
 module LibraryHeuristics =
-    type LibraryHeuristicResultByProjectName =
+    open System.IO
+
+    type LibraryHeuristicResultByPath =
         | Likely
         | Unlikely
         | Uncertain
@@ -62,10 +64,11 @@ module LibraryHeuristics =
             '-'
         |]
 
-    let howLikelyProjectIsLibrary (projectFileName: string): LibraryHeuristicResultByProjectName =
+    [<TailCall>]
+    let rec private howLikelyIsInLibrary (fsInfo: FileSystemInfo) =
         let libraryAbbrev = "lib"
         let nameSegments =
-            Helper.Naming.QuickFixes.splitByCaseChange projectFileName
+            Helper.Naming.QuickFixes.splitByCaseChange fsInfo.Name
             |> Seq.map (fun segment -> segment.ToLowerInvariant())
         if nameSegments |> Seq.contains libraryAbbrev then
             Likely
@@ -81,7 +84,20 @@ module LibraryHeuristics =
                     )
             ) then
             Unlikely
-        elif projectFileName.ToLowerInvariant().EndsWith libraryAbbrev then
+        elif fsInfo.Name.ToLowerInvariant().EndsWith libraryAbbrev then
             Likely
         else
+            let maybeParent =
+                match fsInfo with
+                | :? FileInfo as fileInfo -> Some fileInfo.Directory
+                | :? DirectoryInfo as dirInfo -> Option.ofObj dirInfo.Parent
+                | _ -> None
+            match maybeParent with
+            | Some parent -> howLikelyIsInLibrary parent
+            | None -> Uncertain
+
+    let howLikelyFileIsInLibrary (filePath: string): LibraryHeuristicResultByPath =
+        if System.String.IsNullOrEmpty filePath then
             Uncertain
+        else
+            howLikelyIsInLibrary <| FileInfo filePath
