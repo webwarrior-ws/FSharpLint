@@ -91,7 +91,7 @@ let isInObsoleteMethodOrFunction parents =
 
     parents |> List.exists isObsolete
 
-let checkIfInLibrary (args: AstNodeRuleParams) (range: range) : array<WarningDetails> =
+let checkIfInLibrary (args: AstNodeRuleParams) : bool =
     let ruleNotApplicable =
         isInObsoleteMethodOrFunction (args.GetParents args.NodeIndex)
         ||
@@ -109,10 +109,14 @@ let checkIfInLibrary (args: AstNodeRuleParams) (range: range) : array<WarningDet
             || areThereTestsInSameFileOrProject args.SyntaxArray args.ProjectCheckInfo
         | _ ->
             areThereTestsInSameFileOrProject args.SyntaxArray args.ProjectCheckInfo
-    
-    if ruleNotApplicable then
-        Array.empty
-    else
+
+    ruleNotApplicable
+
+let runner args =
+    let ruleNotApplicable = checkIfInLibrary args
+    match ruleNotApplicable, args.AstNode with
+    | true, _ -> Array.empty
+    | false, AstNode.Identifier(["Async"; "RunSynchronously"], range) ->
         Array.singleton 
             { 
                 Range = range
@@ -120,11 +124,6 @@ let checkIfInLibrary (args: AstNodeRuleParams) (range: range) : array<WarningDet
                 SuggestedFix = None
                 TypeChecks = List.Empty 
             }
-
-let runner args =
-    match args.AstNode with
-    | AstNode.Identifier(["Async"; "RunSynchronously"], range) ->
-        checkIfInLibrary args range
     | _ -> Array.empty
 
 let rule =
