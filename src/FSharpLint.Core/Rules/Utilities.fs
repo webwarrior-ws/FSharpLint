@@ -93,5 +93,11 @@ module LibraryHeuristics =
                 | :? DirectoryInfo as dirInfo -> Option.ofObj dirInfo.Parent
                 | _ -> None
             match maybeParent with
-            | Some parent -> howLikelyFileIsInLibrary parent
+            | Some parent -> 
+                if parent.Exists then
+                    match parent.EnumerateFiles "*.fsproj" |> Seq.tryHead with
+                    | Some _projFile -> Uncertain
+                    | None -> howLikelyFileIsInLibrary parent
+                else
+                    howLikelyFileIsInLibrary parent
             | None -> Uncertain

@@ -112,8 +112,8 @@ let checkIfInLibrary (args: AstNodeRuleParams) : bool =
                 hasEntryPoint checkFileResults args.ProjectCheckInfo
                 || areThereTestsInSameFileOrProject args.SyntaxArray args.ProjectCheckInfo
         | Some checkFileResults, None ->
+            // args.FilePath is empty when running tests
             if System.String.IsNullOrEmpty args.FilePath then
-                // args.FilePath is empty when running tests
                 hasEntryPoint checkFileResults None
                 || areThereTestsInSameFileOrProject args.SyntaxArray args.ProjectCheckInfo
             else
@@ -124,8 +124,8 @@ let checkIfInLibrary (args: AstNodeRuleParams) : bool =
                     hasEntryPoint checkFileResults None
                     || areThereTestsInSameFileOrProject args.SyntaxArray args.ProjectCheckInfo
         | _ ->
+            // args.FilePath is empty when running tests
             if System.String.IsNullOrEmpty args.FilePath then
-                // args.FilePath is empty when running tests
                 areThereTestsInSameFileOrProject args.SyntaxArray args.ProjectCheckInfo
             else
                 match howLikelyFileIsInLibrary (FileInfo args.FilePath) with
