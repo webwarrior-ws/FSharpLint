@@ -119,17 +119,19 @@ let checkIfInLibrary (args: AstNodeRuleParams) : bool =
     ruleNotApplicable
 
 let runner args =
-    let ruleNotApplicable = checkIfInLibrary args
-    match ruleNotApplicable, args.AstNode with
-    | true, _ -> Array.empty
-    | false, AstNode.Identifier(["Async"; "RunSynchronously"], range) ->
-        Array.singleton 
-            { 
-                Range = range
-                Message = Resources.GetString "NoAsyncRunSynchronouslyInLibrary"
-                SuggestedFix = None
-                TypeChecks = List.Empty 
-            }
+    match args.AstNode with
+    | AstNode.Identifier(["Async"; "RunSynchronously"], range) ->
+        let ruleIsApplicable = not (checkIfInLibrary args)
+        if ruleIsApplicable then
+            Array.singleton 
+                { 
+                    Range = range
+                    Message = Resources.GetString "NoAsyncRunSynchronouslyInLibrary"
+                    SuggestedFix = None
+                    TypeChecks = List.Empty 
+                }
+        else
+            Array.empty
     | _ -> Array.empty
 
 let rule =
