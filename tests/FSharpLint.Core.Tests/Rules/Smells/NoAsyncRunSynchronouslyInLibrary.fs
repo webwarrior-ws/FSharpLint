@@ -234,3 +234,45 @@ type TestNoAsyncRunSynchronouslyInLibraryHeuristic() =
             howLikelyProjectIsLibrary "foo_console_app"
         )
 
+    [<Test>]
+    member this.``Unlikely to be library if path segment contains "console"``() =
+        Assert.AreEqual(
+            LibraryHeuristicResultByProjectName.Unlikely,
+            howLikelyProjectIsLibrary "/Console/Foo.fsproj"
+        )
+
+    [<Test>]
+    member this.``Unlikely to be library if path segment contains "test"``() =
+        Assert.AreEqual(
+            LibraryHeuristicResultByProjectName.Unlikely,
+            howLikelyProjectIsLibrary "/Tests/Foo.fsproj"
+        )
+
+    [<Test>]
+    member this.``Unlikely to be library if path segment contains "TUI"``() =
+        Assert.AreEqual(
+            LibraryHeuristicResultByProjectName.Unlikely,
+            howLikelyProjectIsLibrary "/FooTUI/Foo.fsproj"
+        )
+
+    [<Test>]
+    member this.``Likely to be library if path segment contains "Lib" as a PascalCase segment``() =
+        Assert.AreEqual(
+            LibraryHeuristicResultByProjectName.Likely,
+            howLikelyProjectIsLibrary "/src/LibFoo/Foo.fsproj"
+        )
+
+    [<Test>]
+    member this.``Likely to be library if path segment ends with "Lib"``() =
+        Assert.AreEqual(
+            LibraryHeuristicResultByProjectName.Likely,
+            howLikelyProjectIsLibrary "/src/FooLib/Whatever/Foo.fsproj"
+        )
+
+    [<Test>]
+    member this.``Uncertain if path segment don't indicate likelyhood being in library``() =
+        Assert.AreEqual(
+            LibraryHeuristicResultByProjectName.Uncertain,
+            howLikelyProjectIsLibrary "/src/Foo/Whatever/Foo.fsproj"
+        )
+
