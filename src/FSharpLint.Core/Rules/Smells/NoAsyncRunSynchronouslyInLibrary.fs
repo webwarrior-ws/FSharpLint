@@ -111,10 +111,17 @@ let checkIfInLibrary (args: AstNodeRuleParams) : bool =
                 hasEntryPoint checkFileResults args.ProjectCheckInfo
                 || areThereTestsInSameFileOrProject args.SyntaxArray args.ProjectCheckInfo
         | Some checkFileResults, None ->
-            hasEntryPoint checkFileResults None
-            || areThereTestsInSameFileOrProject args.SyntaxArray args.ProjectCheckInfo
+            match howLikelyProjectIsLibrary args.FilePath with
+            | Likely -> false
+            | Unlikely -> true
+            | Uncertain ->
+                hasEntryPoint checkFileResults None
+                || areThereTestsInSameFileOrProject args.SyntaxArray args.ProjectCheckInfo
         | _ ->
-            areThereTestsInSameFileOrProject args.SyntaxArray args.ProjectCheckInfo
+            match howLikelyProjectIsLibrary args.FilePath with
+            | Likely -> false
+            | Unlikely -> true
+            | Uncertain -> areThereTestsInSameFileOrProject args.SyntaxArray args.ProjectCheckInfo
 
     ruleNotApplicable
 
