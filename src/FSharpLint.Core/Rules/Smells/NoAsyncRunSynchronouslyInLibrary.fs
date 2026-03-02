@@ -15,7 +15,13 @@ let hasEntryPoint (checkFileResults: FSharpCheckFileResults) (maybeProjectCheckR
     let hasEntryPointInTheSameFile =
         match checkFileResults.ImplementationFile with
         | Some implFile -> implFile.HasExplicitEntryPoint
-        | None -> false
+        | None -> 
+            let allSymbolUses = checkFileResults.GetAllUsesOfAllSymbolsInFile()
+            allSymbolUses 
+                |> Seq.exists 
+                    (fun symbolUse -> 
+                        symbolUse.IsFromDefinition
+                        && symbolUse.Symbol.HasAttribute<EntryPointAttribute>() )
 
     hasEntryPointInTheSameFile
     ||
