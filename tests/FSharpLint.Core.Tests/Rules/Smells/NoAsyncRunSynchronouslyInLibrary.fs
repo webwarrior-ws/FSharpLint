@@ -135,144 +135,145 @@ let Foo() =
 
 [<TestFixture>]
 type TestNoAsyncRunSynchronouslyInLibraryHeuristic() =
+    member private this.HowLikelyFileIsInLibrary path =
+        howLikelyFileIsInLibrary (System.IO.FileInfo path)
 
     [<Test>]
     member this.``Unlikely to be library if contains "tests" in name``() =
         Assert.AreEqual(
             LibraryHeuristicResultByPath.Unlikely,
-            howLikelyFileIsInLibrary "/dummy/IntegrationTests"
+            this.HowLikelyFileIsInLibrary "/dummy/IntegrationTests.fsproj"
         )
 
     [<Test>]
     member this.``Unlikely to be library if contains "testing" in name``() =
         Assert.AreEqual(
             LibraryHeuristicResultByPath.Unlikely,
-            howLikelyFileIsInLibrary "/dummy/UnitTesting"
+            this.HowLikelyFileIsInLibrary "/dummy/UnitTesting.fsproj"
         )
 
     [<Test>]
     member this.``Unlikely to be library if contains "test" in name``() =
         Assert.AreEqual(
             LibraryHeuristicResultByPath.Unlikely,
-            howLikelyFileIsInLibrary "/dummy/TestSuite"
+            this.HowLikelyFileIsInLibrary "/dummy/TestSuite.fsproj"
         )
 
     [<Test>]
     member this.``Unlikely to be library if contains "console" in name``() =
         Assert.AreEqual(
             LibraryHeuristicResultByPath.Unlikely,
-            howLikelyFileIsInLibrary "/dummy/FooConsole"
+            this.HowLikelyFileIsInLibrary "/dummy/FooConsole.fsproj"
         )
 
     [<Test>]
     member this.``Likely to be library if contains Contains "Lib" as a PascalCase segment``() =
         Assert.AreEqual(
             LibraryHeuristicResultByPath.Likely,
-            howLikelyFileIsInLibrary "/dummy/LibFoo"
+            this.HowLikelyFileIsInLibrary "/dummy/LibFoo.fsproj"
         )
 
     [<Test>]
     member this.``Uncertain if contains contains "Lib" but not as a PascalCase segment``() =
         Assert.AreEqual(
             LibraryHeuristicResultByPath.Uncertain,
-            howLikelyFileIsInLibrary "/LibreOfficeProg"
+            this.HowLikelyFileIsInLibrary "/LibreOfficeProg.fsproj"
         )
 
     [<Test>]
     member this.``Likely to be library if contains ends with "lib" (case-insensitive)``() =
         Assert.AreEqual(
             LibraryHeuristicResultByPath.Likely,
-            howLikelyFileIsInLibrary "/dummy/FooLib"
+            this.HowLikelyFileIsInLibrary "/dummy/FooLib.fsproj"
         )
 
     [<Test>]
     member this.``Unlikely to be library if contains "CLI" in name``() =
         Assert.AreEqual(
             LibraryHeuristicResultByPath.Unlikely,
-            howLikelyFileIsInLibrary "/dummy/FooCLI"
+            this.HowLikelyFileIsInLibrary "/dummy/FooCLI.fsproj"
         )
 
     [<Test>]
     member this.``Uncertain to be library if contains "cli" in name not related to CLI``() =
         Assert.AreEqual(
             LibraryHeuristicResultByPath.Uncertain,
-            howLikelyFileIsInLibrary "/InclinedDriver"
+            this.HowLikelyFileIsInLibrary "/InclinedDriver.fsproj"
         )
 
     [<Test>]
     member this.``Unlikely to be library if contains "TUI" in name``() =
         Assert.AreEqual(
             LibraryHeuristicResultByPath.Unlikely,
-            howLikelyFileIsInLibrary "/dummy/FooTUI"
+            this.HowLikelyFileIsInLibrary "/dummy/FooTUI.fsproj"
         )
 
     [<Test>]
     member this.``Likely to be library if it starts with "lib", e.g. camelCase``() =
         Assert.AreEqual(
             LibraryHeuristicResultByPath.Likely,
-            howLikelyFileIsInLibrary "/dummy/libFoo"
+            this.HowLikelyFileIsInLibrary "/dummy/libFoo.fsproj"
         )
 
     [<Test>]
     member this.``Unlikely to be library if it contains "console", but segments are separated by dots``() =
         Assert.AreEqual(
             LibraryHeuristicResultByPath.Unlikely,
-            howLikelyFileIsInLibrary "/dummy/foo.console.app"
+            this.HowLikelyFileIsInLibrary "/dummy/foo.console.app.fsproj"
         )
 
     [<Test>]
     member this.``Unlikely to be library if it contains "console", but segments are separated by dashes``() =
         Assert.AreEqual(
             LibraryHeuristicResultByPath.Unlikely,
-            howLikelyFileIsInLibrary "/dummy/foo-console-app"
+            this.HowLikelyFileIsInLibrary "/dummy/foo-console-app.fsproj"
         )
 
     [<Test>]
     member this.``Unlikely to be library if it contains "console", but segments are separated by underscores``() =
         Assert.AreEqual(
             LibraryHeuristicResultByPath.Unlikely,
-            howLikelyFileIsInLibrary "/dummy/foo_console_app"
+            this.HowLikelyFileIsInLibrary "/dummy/foo_console_app.fsproj"
         )
 
     [<Test>]
     member this.``Unlikely to be library if path segment contains "console"``() =
         Assert.AreEqual(
             LibraryHeuristicResultByPath.Unlikely,
-            howLikelyFileIsInLibrary "/Console/Foo.fsproj"
+            this.HowLikelyFileIsInLibrary "/Console/Foo.fsproj"
         )
 
     [<Test>]
     member this.``Unlikely to be library if path segment contains "test"``() =
         Assert.AreEqual(
             LibraryHeuristicResultByPath.Unlikely,
-            howLikelyFileIsInLibrary "/Tests/Foo.fsproj"
+            this.HowLikelyFileIsInLibrary "/Tests/Foo.fsproj"
         )
 
     [<Test>]
     member this.``Unlikely to be library if path segment contains "TUI"``() =
         Assert.AreEqual(
             LibraryHeuristicResultByPath.Unlikely,
-            howLikelyFileIsInLibrary "/FooTUI/Foo.fsproj"
+            this.HowLikelyFileIsInLibrary "/FooTUI/Foo.fsproj"
         )
 
     [<Test>]
     member this.``Likely to be library if path segment contains "Lib" as a PascalCase segment``() =
         Assert.AreEqual(
             LibraryHeuristicResultByPath.Likely,
-            howLikelyFileIsInLibrary "/src/LibFoo/Foo.fsproj"
+            this.HowLikelyFileIsInLibrary "/src/LibFoo/Foo.fsproj"
         )
 
     [<Test>]
     member this.``Likely to be library if path segment ends with "Lib"``() =
         Assert.AreEqual(
             LibraryHeuristicResultByPath.Likely,
-            howLikelyFileIsInLibrary "/src/FooLib/Whatever/Foo.fsproj"
+            this.HowLikelyFileIsInLibrary "/src/FooLib/Whatever/Foo.fsproj"
         )
 
     [<Test>]
     member this.``Uncertain if path segment don't indicate likelyhood being in library``() =
         Assert.AreEqual(
             LibraryHeuristicResultByPath.Uncertain,
-            howLikelyFileIsInLibrary "/src/Foo/Whatever/Foo.fsproj"
+            this.HowLikelyFileIsInLibrary "/src/Foo/Whatever/Foo.fsproj"
         )
-

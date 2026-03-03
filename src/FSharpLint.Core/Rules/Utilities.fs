@@ -65,7 +65,7 @@ module LibraryHeuristics =
         |]
 
     [<TailCall>]
-    let rec private howLikelyIsInLibrary (fsInfo: FileSystemInfo) =
+    let rec howLikelyFileIsInLibrary (fsInfo: FileSystemInfo) =
         let libraryAbbrev = "lib"
         let nameSegments =
             Helper.Naming.QuickFixes.splitByCaseChange fsInfo.Name
@@ -93,11 +93,5 @@ module LibraryHeuristics =
                 | :? DirectoryInfo as dirInfo -> Option.ofObj dirInfo.Parent
                 | _ -> None
             match maybeParent with
-            | Some parent -> howLikelyIsInLibrary parent
+            | Some parent -> howLikelyFileIsInLibrary parent
             | None -> Uncertain
-
-    let howLikelyFileIsInLibrary (filePath: string): LibraryHeuristicResultByPath =
-        if System.String.IsNullOrEmpty filePath then
-            Uncertain
-        else
-            howLikelyIsInLibrary <| FileInfo filePath

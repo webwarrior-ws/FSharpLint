@@ -206,7 +206,7 @@ let runner (config: Config) (args: AstNodeRuleParams) =
 
     let likelyhoodOfBeingInLibrary =
         match args.ProjectCheckInfo with
-        | Some projectInfo -> howLikelyFileIsInLibrary projectInfo.ProjectContext.ProjectOptions.ProjectFileName
+        | Some projectInfo -> howLikelyFileIsInLibrary (IO.FileInfo projectInfo.ProjectContext.ProjectOptions.ProjectFileName)
         | None -> Unlikely
 
     if config.Mode = OnlyPublicAPIsInLibraries && likelyhoodOfBeingInLibrary <> Likely then

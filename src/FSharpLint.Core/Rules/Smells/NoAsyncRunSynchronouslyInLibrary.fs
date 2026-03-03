@@ -1,5 +1,6 @@
 ﻿module FSharpLint.Rules.NoAsyncRunSynchronouslyInLibrary
 
+open System.IO
 open FSharp.Compiler.Syntax
 open FSharp.Compiler.Symbols
 open FSharp.Compiler.Text
@@ -103,25 +104,34 @@ let checkIfInLibrary (args: AstNodeRuleParams) : bool =
         ||
         match (args.CheckInfo, args.ProjectCheckInfo) with
         | Some checkFileResults, Some checkProjectResults ->
-            let projectFile = System.IO.FileInfo checkProjectResults.ProjectContext.ProjectOptions.ProjectFileName
-            match howLikelyFileIsInLibrary projectFile.Name with
+            let projectFile = FileInfo checkProjectResults.ProjectContext.ProjectOptions.ProjectFileName
+            match howLikelyFileIsInLibrary projectFile with
             | Likely -> false
             | Unlikely -> true
             | Uncertain ->
                 hasEntryPoint checkFileResults args.ProjectCheckInfo
                 || areThereTestsInSameFileOrProject args.SyntaxArray args.ProjectCheckInfo
         | Some checkFileResults, None ->
-            match howLikelyFileIsInLibrary args.FilePath with
-            | Likely -> false
-            | Unlikely -> true
-            | Uncertain ->
+            if System.String.IsNullOrEmpty args.FilePath then
+                // args.FilePath is empty when running tests
                 hasEntryPoint checkFileResults None
                 || areThereTestsInSameFileOrProject args.SyntaxArray args.ProjectCheckInfo
+            else
+                match howLikelyFileIsInLibrary (FileInfo args.FilePath) with
+                | Likely -> false
+                | Unlikely -> true
+                | Uncertain ->
+                    hasEntryPoint checkFileResults None
+                    || areThereTestsInSameFileOrProject args.SyntaxArray args.ProjectCheckInfo
         | _ ->
-            match howLikelyFileIsInLibrary args.FilePath with
-            | Likely -> false
-            | Unlikely -> true
-            | Uncertain -> areThereTestsInSameFileOrProject args.SyntaxArray args.ProjectCheckInfo
+            if System.String.IsNullOrEmpty args.FilePath then
+                // args.FilePath is empty when running tests
+                areThereTestsInSameFileOrProject args.SyntaxArray args.ProjectCheckInfo
+            else
+                match howLikelyFileIsInLibrary (FileInfo args.FilePath) with
+                | Likely -> false
+                | Unlikely -> true
+                | Uncertain -> areThereTestsInSameFileOrProject args.SyntaxArray args.ProjectCheckInfo
 
     ruleNotApplicable
 
