@@ -1,5 +1,6 @@
 ﻿module FSharpLint.Core.Tests.Rules.Smells.NoAsyncRunSynchronouslyInLibrary
 
+open System.IO
 open NUnit.Framework
 open FSharpLint.Framework.Rules
 open FSharpLint.Rules
@@ -276,4 +277,20 @@ type TestNoAsyncRunSynchronouslyInLibraryHeuristic() =
         Assert.AreEqual(
             LibraryHeuristicResultByPath.Uncertain,
             this.HowLikelyFileIsInLibrary "/src/Foo/Whatever/Foo.fsproj"
+        )
+
+    [<Test>]
+    member this.``Uncertain if one of the parent dirs contain fsproj file``() =
+        let tempDir = Directory.CreateTempSubdirectory "libraryHeuristicTest"
+        let subDir = tempDir.CreateSubdirectory "LibFoo"
+        let subDir2 = subDir.CreateSubdirectory "Whatever"
+        let subDir3 = subDir2.CreateSubdirectory "src"
+        let filePath = Path.Combine(subDir3.FullName, "Foo.fs")
+        File.WriteAllText(Path.Combine(subDir2.FullName, "Foo.fsproj"), System.String.Empty)
+        let result = this.HowLikelyFileIsInLibrary filePath
+        tempDir.Delete true
+
+        Assert.AreEqual(
+            LibraryHeuristicResultByPath.Uncertain,
+            result
         )
