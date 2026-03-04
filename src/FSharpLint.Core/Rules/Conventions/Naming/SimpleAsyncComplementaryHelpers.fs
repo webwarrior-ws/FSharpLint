@@ -205,15 +205,14 @@ let runner (config: Config) (args: AstNodeRuleParams) =
         
         Array.append (checkFuncs asyncFuncs taskFuncs) (checkFuncs taskFuncs asyncFuncs)
     
-    if config.Mode = OnlyPublicAPIsInLibraries && checkIfInLibrary args then
-        Array.empty
-    else
-        match args.AstNode with
-        | Ast.ModuleOrNamespace(SynModuleOrNamespace(_, _, _, declarations, _, _, _, _, _)) ->
-            processDeclarations declarations
-        | ModuleDeclaration(SynModuleDecl.NestedModule(_, _, declarations, _, _, _)) ->
-            processDeclarations declarations
-        | _ -> Array.empty
+    let isApplicable = lazy(not (config.Mode = OnlyPublicAPIsInLibraries && checkIfInLibrary args))
+
+    match args.AstNode with
+    | Ast.ModuleOrNamespace(SynModuleOrNamespace(_, _, _, declarations, _, _, _, _, _)) when isApplicable.Value ->
+        processDeclarations declarations
+    | ModuleDeclaration(SynModuleDecl.NestedModule(_, _, declarations, _, _, _)) when isApplicable.Value ->
+        processDeclarations declarations
+    | _ -> Array.empty
 
 let rule config =
     AstNodeRule

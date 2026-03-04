@@ -32,67 +32,67 @@ let runner (config: Config) (args: AstNodeRuleParams) =
         | Some(SynAccess.Public _) -> true
         | _ -> config.Mode = AllAPIs
 
-    if config.Mode = OnlyPublicAPIsInLibraries && checkIfInLibrary args then
-        Array.empty
-    else
-        match args.AstNode with
-        | AstNode.Binding (SynBinding (_, _, _, _, attributes, _, _, SynPat.LongIdent(funcIdent, _, _, _, accessibility, identRange), returnInfo, _, _, _, _))
-            when isAccessibilityLevelApplicable accessibility && not <| Helper.Naming.isAttribute "Obsolete" attributes ->
-            let checkAsyncFunction () =
-                match funcIdent with
-                | HasAsyncPrefix _ ->
-                    Array.empty
-                | HasAsyncSuffix name 
-                | HasNoAsyncPrefixOrSuffix name ->
-                    let nameWithAsync = 
-                        if Char.IsUpper name.[0] then
-                            asyncSuffixOrPrefix + name
-                        else
-                            sprintf "%s%c%s"
-                                (asyncSuffixOrPrefix.ToLower())
-                                (Char.ToUpperInvariant name.[0])
-                                (name.Substring 1)
-                    emitWarning identRange nameWithAsync "Async"
+    let isApplicable = lazy(not (config.Mode = OnlyPublicAPIsInLibraries && checkIfInLibrary args))
 
-            let checkTaskFunction () =
-                match funcIdent with
-                | HasAsyncSuffix _ ->
-                    Array.empty
-                | HasAsyncPrefix name 
-                | HasNoAsyncPrefixOrSuffix name ->
-                    let nameWithAsync = name + asyncSuffixOrPrefix
-                    emitWarning identRange nameWithAsync "Task"
-            
-            let parents = args.GetParents args.NodeIndex
-            let hasEnclosingFunctionOrMethod =
-                parents
-                |> List.exists
-                    (fun node ->
-                        match node with
-                        | AstNode.Binding (SynBinding (_, _, _, _, _, _, _, SynPat.LongIdent(_), _, _, _, _, _)) -> true
-                        | _ -> false)
-        
-            if hasEnclosingFunctionOrMethod && config.Mode <> AllAPIs then
+    match args.AstNode with
+    | AstNode.Binding (SynBinding (_, _, _, _, attributes, _, _, SynPat.LongIdent(funcIdent, _, _, _, accessibility, identRange), returnInfo, _, _, _, _))
+        when isAccessibilityLevelApplicable accessibility && not <| Helper.Naming.isAttribute "Obsolete" attributes
+             && isApplicable.Value ->
+        let checkAsyncFunction () =
+            match funcIdent with
+            | HasAsyncPrefix _ ->
                 Array.empty
-            else
-                match returnInfo with
-                | Some ReturnsAsync -> checkAsyncFunction()
-                | Some ReturnsTask -> checkTaskFunction()
-                | None -> 
-                    match args.CheckInfo with
-                    | Some checkInfo ->
-                        match getFunctionReturnType checkInfo args.Lines funcIdent with
-                        | Some returnType ->
-                            match returnType with
-                            | FSharpTypeAsync -> checkAsyncFunction()
-                            | FSharpTypeTask
-                            | FSharpTypeTaskNonGeneric -> checkTaskFunction()
-                            | FSharpTypeNonAsync -> Array.empty
-                        | None -> Array.empty
+            | HasAsyncSuffix name 
+            | HasNoAsyncPrefixOrSuffix name ->
+                let nameWithAsync = 
+                    if Char.IsUpper name.[0] then
+                        asyncSuffixOrPrefix + name
+                    else
+                        sprintf "%s%c%s"
+                            (asyncSuffixOrPrefix.ToLower())
+                            (Char.ToUpperInvariant name.[0])
+                            (name.Substring 1)
+                emitWarning identRange nameWithAsync "Async"
+
+        let checkTaskFunction () =
+            match funcIdent with
+            | HasAsyncSuffix _ ->
+                Array.empty
+            | HasAsyncPrefix name 
+            | HasNoAsyncPrefixOrSuffix name ->
+                let nameWithAsync = name + asyncSuffixOrPrefix
+                emitWarning identRange nameWithAsync "Task"
+            
+        let parents = args.GetParents args.NodeIndex
+        let hasEnclosingFunctionOrMethod =
+            parents
+            |> List.exists
+                (fun node ->
+                    match node with
+                    | AstNode.Binding (SynBinding (_, _, _, _, _, _, _, SynPat.LongIdent(_), _, _, _, _, _)) -> true
+                    | _ -> false)
+        
+        if hasEnclosingFunctionOrMethod && config.Mode <> AllAPIs then
+            Array.empty
+        else
+            match returnInfo with
+            | Some ReturnsAsync -> checkAsyncFunction()
+            | Some ReturnsTask -> checkTaskFunction()
+            | None -> 
+                match args.CheckInfo with
+                | Some checkInfo ->
+                    match getFunctionReturnType checkInfo args.Lines funcIdent with
+                    | Some returnType ->
+                        match returnType with
+                        | FSharpTypeAsync -> checkAsyncFunction()
+                        | FSharpTypeTask
+                        | FSharpTypeTaskNonGeneric -> checkTaskFunction()
+                        | FSharpTypeNonAsync -> Array.empty
                     | None -> Array.empty
-                | _ ->
-                    Array.empty
-        | _ -> Array.empty
+                | None -> Array.empty
+            | _ ->
+                Array.empty
+    | _ -> Array.empty
 
 let rule config =
     AstNodeRule
