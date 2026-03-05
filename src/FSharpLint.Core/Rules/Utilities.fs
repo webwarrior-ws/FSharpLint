@@ -234,7 +234,7 @@ module LibraryHeuristics =
                 | veryCertain -> veryCertain
 
         | _ ->
-            let lastHint =
+            let updatedLastHint =
                 lazy(
                     if areThereTestsInSameFileOrProject args.SyntaxArray args.ProjectCheckInfo then
                         Unlikely
@@ -244,9 +244,9 @@ module LibraryHeuristics =
 
             // args.FilePath is empty when running tests
             if String.IsNullOrEmpty args.FilePath then
-                lastHint.Value
+                updatedLastHint.Value
             else
                 match howLikelyLintTargetIsInLibraryJudgingByNames (FileInfo args.FilePath) with
-                | Uncertain -> lastHint.Value
+                | Uncertain -> updatedLastHint.Value
                 | veryCertain -> veryCertain
 
