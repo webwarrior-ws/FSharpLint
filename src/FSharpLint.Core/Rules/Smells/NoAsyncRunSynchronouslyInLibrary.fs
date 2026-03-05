@@ -19,12 +19,10 @@ let runner args =
         let ruleIsApplicable =
             if isInObsoleteMethodOrFunction (args.GetParents args.NodeIndex) then
                 false
-            // we're considering Unlike=Uncertain here because if it's .fsx it's not lib for sure, and if it's just .fs we prefer to not give false positives,
-            // especially taking in account that this rule is enabled by default
-            elif checkIfInLibrary args = Likely then
-                true
             else
-                false
+                // we're considering Unlike=Uncertain here because if it's .fsx it's not lib for sure, and if it's just .fs we prefer to not give false positives,
+                // especially taking in account that this rule is enabled by default
+                checkIfInLibrary args = Likely
         if ruleIsApplicable then
             Array.singleton 
                 { 
