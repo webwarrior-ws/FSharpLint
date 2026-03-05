@@ -12,13 +12,16 @@ type TestNoAsyncRunSynchronouslyInLibrary() =
 
     [<Test>]
     member this.``Async.RunSynchronously should not be used in library code``() =
+        let testCodeFileName = "SampleLib.fs"
         this.Parse("""
 module Program
 
 async {
     return ()
 }
-|> Async.RunSynchronously""")
+|> Async.RunSynchronously""",
+            testCodeFileName
+        )
 
         Assert.IsTrue this.ErrorsExist
 
