@@ -315,6 +315,16 @@ type T = int []
         Assert.IsTrue this.ErrorsExist
         Assert.IsTrue (this.ErrorWithMessageExistsAt("Use prefix syntax for generic type (array<'Foo>).", 4, 9))
 
+    [<Test>]
+    member this.``Regression test for postfix syntax in return type``() =
+        this.Parse """
+let CheckIsGitHubFork (owner: string) (repo: string) : bool option =
+    None
+"""
+
+        Assert.IsTrue this.ErrorsExist
+        Assert.IsTrue (this.ErrorWithMessageExistsAt("Use prefix syntax for generic type.", 2, 55))
+
 [<TestFixture>]
 type TestFormattingNeverTypePrefixing() =
     inherit TestAstNodeRuleBase.TestAstNodeRuleBase(TypePrefixing.rule { Config.Mode = Mode.Never })
