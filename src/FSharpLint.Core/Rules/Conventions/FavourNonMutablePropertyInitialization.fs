@@ -64,9 +64,9 @@ let rec private processLetBinding (instanceNames: Set<string>) (body: SynExpr) (
 and [<TailCall>] processExpression (expression: SynExpr) (continuation: unit -> array<WarningDetails>) : array<WarningDetails> =
     Array.append
         (match expression with
-        | SynExpr.LetOrUse letOrUse when not letOrUse.IsBang ->
-            let instanceNames = extraFromBindings letOrUse.Bindings List.Empty |> Set.ofList
-            processLetBinding instanceNames letOrUse.Body returnEmptyArray
+        | ExpressionUtilities.LetOrUse({Bindings = bindings; Body = body}, true, _) ->
+            let instanceNames = extraFromBindings bindings List.Empty |> Set.ofList
+            processLetBinding instanceNames body returnEmptyArray
         | SynExpr.Sequential(_, _, expr1, expr2, _, _) ->
             processExpression expr1 (fun () -> processExpression expr2 returnEmptyArray)
         | _ -> Array.empty)
